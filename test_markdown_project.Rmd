@@ -17,6 +17,7 @@ When you click the **Knit** button a document will be generated that includes bo
 card <- read.csv("CarPrice_Assignment.csv")
 coln <- colnames(card)
 print(coln)
+summary(card)
 ```
 
 ## Including Plots for the greater good
@@ -24,29 +25,23 @@ print(coln)
 You can also embed plots, for example
 
 ```{r pressure, echo=FALSE}
-plot(card$aspiration, card$price)
+plot(card$cylindernumber, card$price)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
-## Chapter 2 Codes
-Code run for available
 
-```{r pressure}
-# as.factor for categorical variables are important
-attach(card)
-plot(as.factor(car_ID), price, col='red')
-hist(price)
-plot(~wheelbase+as.factor(fuelsystem)+car_ID, card)
-```
+## Chapter 3
 
-```{r pressure}
+```{r ch3}
 attach(card)
-names(card)
-plot(as.factor(wheelbase), price)
-#identify(wheelbase)
-dim(card)
-summary(card)
+fix(card)
+
 ```
-## Chapter 3 Code
+## Chapter 4
+
+## Chapter 5
+
+
+
 
