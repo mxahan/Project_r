@@ -151,11 +151,22 @@ boot.fn(card,sample(205,205,replace=T))
 boot.fn(card,sample(205, 205,replace=T))
 
 boot(Auto,boot.fn,1000)
-summary(lm(mpg~horsepower,data=Auto))$coef
+
+summary(lm(price~carlength,data=card))$coef
+
+
+summary(lm(price~carlength+carwidth+peakrpm,data=card))$coef
+
+
+
 boot.fn=function(data,index)
-  coefficients(lm(mpg~horsepower+I(horsepower^2),data=data,subset=index))
+  coefficients(lm(price~carwidth+I(carwidth^2),data=card,subset=index))
 set.seed(1)
-boot(Auto,boot.fn,1000)
-summary(lm(mpg~horsepower+I(horsepower^2),data=Auto))$coef
+boot(card,boot.fn,1000)
+summary(lm(price~carwidth+I(carwidth^2),data=card))$coef
 
-
+boot.fn=function(data,index)
+  coefficients(lm(price~carlength+I(carlength^2),data=card,subset=index))
+set.seed(1)
+boot(card,boot.fn,1000)
+summary(lm(price~carlength+I(carlength^2),data=card))$coef
