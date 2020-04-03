@@ -189,4 +189,4 @@ summary(lm(price~carlength+I(carlength^2),data=card))$coef
 ## Chapter 8
 
 
-## Chapter 9
+## Chapter 9  
