@@ -58,6 +58,10 @@ lm.fit1 = lm(price~CarName)
 summary(lm(price~horsepower+CarName))
 
 
+## chapter 4
+
+
+
 ## chapter 5
 
 # validation set approach
@@ -170,3 +174,19 @@ boot.fn=function(data,index)
 set.seed(1)
 boot(card,boot.fn,1000)
 summary(lm(price~carlength+I(carlength^2),data=card))$coef
+
+## chapter 6
+
+
+
+
+## Chapter 7
+
+
+
+
+
+## Chapter 8
+
+
+## Chapter 9
