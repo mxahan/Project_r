@@ -3,6 +3,7 @@
 # Best Subset Selection
 
 library(ISLR)
+
 fix(Hitters)
 names(Hitters)
 dim(Hitters)
@@ -14,6 +15,7 @@ library(leaps)
 regfit.full=regsubsets(Salary~.,Hitters)
 summary(regfit.full)
 regfit.full=regsubsets(Salary~.,data=Hitters,nvmax=19)
+
 reg.summary=summary(regfit.full)
 names(reg.summary)
 reg.summary$rsq

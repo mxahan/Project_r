@@ -49,6 +49,11 @@ plot(carlength, price)
 lm.fit = lm(price~., data =  card)
 summary(lm.fit)
 
+summary(lm(price~poly(peakrpm,4)+aspiration+carlength+carheight+curbweight+fuelsystem+
+             doornumber+wheelbase+
+             enginetype+CarName
+          , data =card))
+
 
 lm.fit = lm(price~highwaympg+horsepower+citympg+as.numeric(CarName), data =  card)
 summary(lm.fit)
