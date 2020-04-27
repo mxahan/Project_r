@@ -337,7 +337,7 @@ mean.cv.errors
 
 par(mfrow = c(1,1))
 
-plot(mean.cv.errors, type = 'b')
+plot(mean.cv.errors)
 
 reg.best  =  regsubsets(price~fuelsystem+peakrpm+citympg
                         + enginesize+enginetype+carwidth+curbweight+carlength
@@ -606,6 +606,7 @@ attr(bs(enginesize, df=6), "knots")
 
 
 fit2 = lm(price~ns(enginesize, df=4), data=card)
+
 pred2= predict(fit2, newdata = list(enginesize=engs.grid), se=T)
 lines(engs.grid, pred2$fit, col="red", lwd=2)
 
@@ -634,8 +635,45 @@ gam1 = lm(price~ns(carwidth, 4)+ns(enginesize,5)+curbweight, data=card)
 
 ### couldn't install gam!!
 
-#library(gam)
-#gam.m3 =gam(price~s(enginesize, 5), data=card)
+library(mgcv)  #gam in the book and change the poly
+gam.m3 <-gam(price~s(poly(enginesize,4))+carwidth, data=card)
+
+par(mfrow = c(1,3))
+plot(gam.m3, se=TRUE, col='blue')
+
+plot.gam(gam1, se=TRUE, col="red")
+
+gam.m1= gam(price~s(poly(enginesize,5))+carwidth, data=card)
+
+gam.m2= gam(price~s(poly(enginesize,5))+carwidth+curbweight, data=card)
+
+
+anova(gam.m1, gam.m2, gam.m3, test="F")
+
+
+summary(gam.m3)
+
+preds =predict(gam.m2, newdata=price)
+
+gam.lo= gam(wage~s(enginesize, df=4)+lo(carwidth, span = 0.7)+curbweight, data=card)
+
+plot.gam(gam.lo, se=TRUE, col="green")
+
+gam.lo= gam(wage~lo(enginesize+carwidth, span = 0.7)+curbweight, data=card)
+
+library(akima)
+
+plot(gam.lo.i)
+
+gam.lr = gam(I(price>15000)~carwidth+s(enginesize, df=5)
+             +curbweight, family = binomial, data=card)
+
+par(mfrow = c(1,3))
+
+plot(gam.lr, se=T, col="green")
+
+table(curbweight, I(price>15000))
+
 
 ## Chapter 8
 
