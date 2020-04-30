@@ -674,9 +674,149 @@ plot(gam.lr, se=T, col="green")
 
 table(curbweight, I(price>15000))
 
+gam.lr.s = gam(I(price>15000)~carwidth+s(enginesize, df=5)
+               +curbweight, family = binomial, data=card)
+
+plot(gam.lr.s, se =T, col ="green")
 
 ## Chapter 8
+library(tree)
+high = ifelse(price<=15000, "No", "Yes")
 
+card = data.frame(card, high)
+
+attach(card)
+
+tree.card =  tree(high~fuelsystem+peakrpm+citympg
+                  + enginesize+enginetype+carwidth+curbweight+carlength
+                  + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                  + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                  data = card)
+
+
+summary(tree.card)
+
+plot(tree.card, pretty=0)
+
+tree.card
+
+set.seed(2)
+
+train =  sample(1:nrow(card), 150)
+card.test  =  card[-train,]
+high.test =  high[-train]
+tree.card = tree(high~fuelsystem+peakrpm+citympg
+                 + enginesize+enginetype+carwidth+curbweight+carlength
+                 + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                 + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                 data = card, subset=train)
+
+tree.pred = predict(tree.card, card.test, type = "class")
+
+table(tree.pred, high.test)
+
+set.seed(3)
+
+cv.card = cv.tree(tree.card, FUN=prune.misclass)
+names(cv.card)
+cv.card
+
+par(mfrow= c(1,2))
+plot(cv.card$size, cv.card$dev, type="b")
+plot(cv.card$k, cv.card$dev, type="b")
+
+prune.card = prune.misclass(tree.card, best=4)
+plot(prune.card)
+text(prune.card, pretty = 0)
+tree.pred = predict(prune.card, card.test, type = "class")
+table(tree.pred, high.test)
+
+prune.card = prune.misclass(tree.card, best=3)
+plot(prune.card)
+text(prune.card, pretty = 0)
+tree.pred = predict(prune.card, card.test, type = "class")
+table(tree.pred, high.test)
+
+# Fitting regression
+set.seed(1)
+
+train = sample(1:nrow(card), nrow(card)/2)
+tree.card = tree(price~fuelsystem+peakrpm+citympg
+                 + enginesize+enginetype+carwidth+curbweight+carlength
+                 + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                 + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                 data = card, subset=train)
+
+summary(tree.card)
+
+plot(tree.card)
+text(tree.card, pretty = 0)
+
+cv.card = cv.tree(tree.card)
+plot(cv.card$size, cv.card$dev, type ="b")
+
+prune.card = prune.tree(tree.card, best = 4)
+plot(prune.card)
+text(prune.card, pretty = 0)
+
+yhat = predict(tree.card, newdata= card[-train,])
+card.test = card[-train, "price"]
+plot(yhat, card.test)
+abline(0,1)
+mean((yhat-card.test)^2)
+
+# Bagging and Random forest
+library(randomForest)
+
+set.seed(1)
+bag.card = randomForest(price~fuelsystem+peakrpm+citympg
+                        + enginesize+enginetype+carwidth+curbweight+carlength
+                        + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                        + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                        data = card, subset=train, mtry =13, importance =TRUE)
+bag.card
+
+yhat.bag = predict(bag.card, newdata = card[-train,])
+plot(yhat.bag, card.test)
+abline(0,1)
+mean((yhat.bag - card.test)^2)
+
+set.seed(1)
+rf.card = randomForest(price~fuelsystem+peakrpm+citympg
+                       + enginesize+enginetype+carwidth+curbweight+carlength
+                       + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                       + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                       data = card, subset=train, mtry = 6, importance=TRUE)
+yhat.rf = predict(rf.card, newdata = card[-train, ])
+mean((yhat.rf - card.test)^2)
+
+importance(rf.card)
+varImpPlot(rf.card)
+
+# boosting
+
+library(gbm)
+set.seed(1)
+boost.card = gbm(price~fuelsystem+peakrpm+citympg
+                 + enginesize+enginetype+carwidth+curbweight+carlength
+                 + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                 + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                 data = card[-train,], distribution = "gaussian", n.trees = 5000, 
+                 interaction.depth = 4)
+summary(boost.card)
+
+par(mfrow = c(1,2))
+plot(boost.card, i ="carlength")
+plot(boost.card, i= "enginesize")
+
+boost.card = gbm(price~fuelsystem+peakrpm+citympg
+                 + enginesize+enginetype+carwidth+curbweight+carlength
+                 + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                 + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                 data = card[-train,], distribution = "gaussian", n.trees = 5000, 
+                 interaction.depth = 4, shrinkage = 0.2, verbose = F)
+yhat.boost =  predict(boost.card, newdata = card[-train,], n.trees = 5000)
+mean((yhat.boost - card.test)^2)
 
 ## Chapter 9  
 
