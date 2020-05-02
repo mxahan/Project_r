@@ -834,7 +834,8 @@ y = high
 cutlen = 180 # upto 205
 
 
-x =  matrix( c(curbweight[1:cutlen], enginesize[1:cutlen]),ncol = 2, nrow  = cutlen)
+x =  matrix( c(curbweight[1:cutlen], enginesize[1:cutlen]),ncol = 2, nrow  = cutlen) #very important
+
 y = high[1:cutlen]
 
 cardshort = data.frame(x = x, y = as.factor(y))
