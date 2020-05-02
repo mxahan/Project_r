@@ -820,3 +820,167 @@ mean((yhat.boost - card.test)^2)
 
 ## Chapter 9  
 
+set.seed(1)
+x= matrix(rnorm(20*2), ncol = 2)
+y = c(rep(-1,10), rep(1,10))
+x[y==1,] = x[y==1,] + 1
+plot(x, col = (3-y))
+
+cardshort = data.frame(x = x, y =as.factor(y))
+
+
+high = ifelse(price<=15000, 0, 1)
+y = high
+cutlen = 180 # upto 205
+
+
+x =  matrix( c(curbweight[1:cutlen], enginesize[1:cutlen]),ncol = 2, nrow  = cutlen)
+y = high[1:cutlen]
+
+cardshort = data.frame(x = x, y = as.factor(y))
+
+attach(cardshort)
+
+library(e1071)
+svmfit = svm(y~., data = cardshort, kernel = "linear", cost = 100, scale = FALSE)
+
+
+"
+svmfit = svm(high~fuelsystem+peakrpm+citympg
+             + enginesize+enginetype+carwidth+curbweight+carlength
+             + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+             + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+             data = card, kernel = "linear", cost = 0.1, scale = FALSE)
+"
+
+
+plot(svmfit, cardshort)
+
+svmfit$index
+
+summary(svmfit)
+'''
+svmfit = svm(high~fuelsystem+peakrpm+citympg
+             + enginesize+enginetype+carwidth+curbweight+carlength
+             + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+             + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+             data = card, kernel = "linear", cost = 0.1, scale = FALSE)
+'''
+
+
+svmfit = svm(y~., data = cardshort, kernel = "linear", cost = 0.1, scale = FALSE)
+plot(svmfit, cardshort)
+
+svmfit$index
+
+set.seed(1)
+
+'''
+tune.out = tune(svm,high~fuelsystem+peakrpm+citympg
+                + enginesize+enginetype+carwidth+curbweight+carlength
+                + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                data = card, ranges = list(cost =c(0.001, 0.01, 0.1, 1 ,5 ,10, 100)) )
+                
+                '''
+tune.out = tune(svm,y~.,
+                data = cardshort, ranges = list(cost =c(0.001, 0.01, 0.1, 1 ,5 ,10, 100)) )
+
+
+summary(tune.out)
+
+bestmod = tune.out$best.model
+summary(bestmod)
+
+xtest =  matrix(c(curbweight[(cutlen+1):205], enginesize[(cutlen+1):205] ), 
+                ncol = 2, nrow  =205- cutlen)
+ytest = high[(cutlen+1):205]
+
+cardshorttest = data.frame(x = xtest, y = as.factor(ytest))
+
+ypred = predict(bestmod, cardshorttest)
+
+table(predict = ypred, truth = cardshorttest$y)
+
+
+
+svmfit = svm(y~., data = cardshort, kernel = "linear", cost = 1, scale = FALSE)
+ypred = predict(svmfit, cardshorttest)
+
+table(predict = ypred, truth = cardshorttest$y)
+
+
+svmfit = svm(y~., data = cardshort, kernel = "linear", cost = 1e05, scale = FALSE)
+summary(svmfit)
+plot(svmfit, cardshort)
+
+
+# SVM
+
+plot(x, col =y)
+
+
+train = sample(180,100)
+
+
+svmfit = svm(y~., data = cardshort[train,], kernel = "radial", gamma = 1, cost = 1)
+plot(svmfit, cardshort[train,])
+
+summary(svmfit)
+
+svmfit = svm(y~., data = cardshort[train,], kernel = "radial", gamma = 1, cost = 1e5)
+plot(svmfit, cardshort[train,])
+
+summary(svmfit)
+
+
+set.seed(1)
+tune.out = tune(svm,y~., data = cardshort[train,], kernel = "radial",
+                ranges = list(cost =c(0.1, 1, 10, 100, 1000)) )
+summary(tune.out)
+
+table(truc = cardshort[-train, "y"], pred = predict(tune.out$best.model, 
+                                                    newdata = cardshort[-train,]))
+
+
+# ROC curve
+library(ROCR)
+
+rocplot = function(pred, truth, ...){
+  predob = prediction(pred, truth)
+  perf = performance(predob, "tpr", "fpr")
+  plot(perf,...)
+}
+
+svmfit.opt = svm(y~., data = cardshort[train,], 
+                 kernel = "radial", gamma = 2, cost = 1, decision.values =T)
+
+
+fitted = attributes(predict(svmfit.opt, cardshort[train,], decision.value = T))$decision.values
+
+par(mfrow =c(1,2))
+
+rocplot(fitted, cardshort[train, "y"], main = "Training Data")
+
+
+
+svmfit.flex = svm(y~., data = cardshort[train,], 
+                 kernel = "radial", gamma = 2, cost = 50, decision.values =T)
+
+
+fitted = attributes(predict(svmfit.flex, cardshort[train,], decision.value = T))$decision.values
+
+rocplot(fitted, cardshort[train, "y"], add =T, col ="red")
+
+
+
+fitted = attributes(predict(svmfit.opt, cardshort[-train,], decision.value = T))$decision.values
+
+rocplot(fitted, cardshort[-train, "y"], add =T, col ="red")
+
+
+fitted = attributes(predict(svmfit.flex, cardshort[-train,], decision.value = T))$decision.values
+
+rocplot(fitted, cardshort[-train, "y"], add =T, col ="red")
+
+# SVM with Multiclass
