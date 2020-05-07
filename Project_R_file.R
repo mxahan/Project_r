@@ -497,7 +497,6 @@ pcr.fit = pcr(price~peakrpm+citympg+ enginesize
 
 validationplot(pcr.fit, val.type = "MSEP")
 
-
 x =  model.matrix(price~peakrpm+citympg+ enginesize
                   +carwidth+curbweight+carlength
                   + highwaympg+  horsepower+enginelocation,
@@ -515,25 +514,23 @@ set.seed(1)
 
 #partial least square
 
-pls.fit = plsr(price~fuelsystem+peakrpm+citympg
-               + enginesize+enginetype+carwidth+curbweight+carlength
-               + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
-               + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
-               data = card,  scale = TRUE)
+pls.fit = plsr(price~peakrpm+citympg+ enginesize
+               +carwidth+curbweight+carlength
+               + highwaympg+  horsepower+enginelocation,
+               data = card,  scale = TRUE, validation = "CV")
 
 summary(pls.fit)
 
 validationplot(pls.fit, val.type = "MSEP")
 
-pls.pred = predict(pls.fit, x[test,], ncomp = 2)
+pls.pred = predict(pls.fit, x[test,], ncomp = 4)
 
 mean((pls.pred - y.test)^2)
 
-pls.fit =  plsr(price~fuelsystem+peakrpm+citympg
-                + enginesize+enginetype+carwidth+curbweight+carlength
-                + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
-                + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
-                data = card,  scale = TRUE, ncomp =2)
+pls.fit =  plsr(price~peakrpm+citympg+ enginesize
+                +carwidth+curbweight+carlength
+                + highwaympg+  horsepower+enginelocation,
+                data = card,  scale = TRUE, ncomp =4)
 
 summary(pls.fit)
 
@@ -545,21 +542,18 @@ summary(pls.fit)
 # Polynomial regression
 
 fit = lm(price~poly(enginesize, 4), data = card)
-
 coef(summary(fit))
-
 
 fit2 = lm(price~poly(enginesize, 4, raw=T), data = card)
-
 coef(summary(fit))
 
-fit2a = lm(price~enginesize+I(enginesize^2)+I(enginesize^3), data=card)
+fit2a = lm(price~enginesize+I(enginesize^2)+I(enginesize^3) + I(enginesize^4), data=card)
 
 coef(fit2a)
 
-fit2b =  lm(price~cbind(enginesize, enginesize^2, enginesize^3))
+fit2b =  lm(price~cbind(enginesize, enginesize^2, enginesize^3,enginesize^4), data=card)
 
-coef(fit2b)
+
 
 engsrange =  range(enginesize)
 
@@ -572,7 +566,7 @@ se.bands =  cbind(preds$fit+2*preds$se.fit, preds$fit-2*preds$se)
 #plot
 par(mfrow=c(1,2), mar = c(4.5, 4.5,1,1), oma=c(0,0,4,0))
 plot(enginesize, price, xlim= engsrange, cex=0.5, col="darkgrey")
-title("Degree 3  polynomial", outer=T)
+title("Degree 4  polynomial", outer=T)
 line(engs.grid, preds$fit, lwd=2, col="blue")
 matlines(engs.grid, se.bands, lwd=1, col="blue", lty=3)
 
@@ -589,13 +583,13 @@ anova(fit.1, fit.2, fit.3, fit.4, fit.5)
 coef(summary(fit.5))
 
 
-fit.1 = lm(price~enginesize+carwidth, data=card)
+fit.1 = lm(price~carwidth+enginesize, data=card)
 fit.2 = lm(price~poly(enginesize,2)+carwidth, data=card)
-fit.1 = lm(price~poly(enginesize,3)+carwidth, data=card)
+fit.3 = lm(price~poly(enginesize,3)+carwidth, data=card)
 anova(fit.1, fit.2, fit.3)
 
 
-fit = glm(I(price>15000)~poly(enginesize, 4), data=card, family = binomial)
+fit = glm(I(price>10300)~poly(enginesize, 4), data=card, family = binomial)
 
 preds = predict(fit, newdata = list(enginesize=engs.grid), se=T)
 
@@ -620,14 +614,14 @@ coef(summary(fit))
 # spline
 library(splines)
 
-fit = lm(price~bs(enginesize, knots = c(25,40,60)), data=card)
+fit = lm(price~bs(enginesize, knots = c(90,120,180)), data=card)
 pred = predict(fit, newdata = list(enginesize=engs.grid), se=T)
 plot(enginesize, price, col="grey")
 lines(engs.grid, pred$fit, lwd=2)
 lines(engs.grid, pred$fit+2*pred$se, ity="dashed")
 lines(engs.grid, pred$fit-2*pred$se, ity="dashed")
 
-dim(bs(enginesize, knots=c(25,40,60)))
+dim(bs(enginesize, knots=c(90,120,180)))
 dim(bs(enginesize, df=6))
 attr(bs(enginesize, df=6), "knots")
 
@@ -637,6 +631,7 @@ fit2 = lm(price~ns(enginesize, df=4), data=card)
 pred2= predict(fit2, newdata = list(enginesize=engs.grid), se=T)
 lines(engs.grid, pred2$fit, col="red", lwd=2)
 
+#smoothed spline
 plot(enginesize, price, xlim= engsrange, cex=0.5, col="darkgrey")
 title("smoothing Spline")
 fit = smooth.spline(enginesize, price, df=16)
@@ -644,7 +639,7 @@ fit2 = smooth.spline(enginesize, price, cv=TRUE)
 fit2$df
 lines(fit,col="red", lwd=2)
 lines(fit2,col="blue", lwd=2)
-legend("topright", legend = c("16 DF", "6.8 DF"), col=c("red", "blue"), lty=1, lwd=2, cex=0.8)
+legend("topright", legend = c("16 DF", "6.95 DF"), col=c("red", "blue"), lty=1, lwd=2, cex=0.8)
 
 
 plot(enginesize, price, xlim = engsrange, cex=.5, col="darkgrey")
@@ -662,7 +657,7 @@ gam1 = lm(price~ns(carwidth, 4)+ns(enginesize,5)+curbweight, data=card)
 
 ### couldn't install gam!!
 
-library(mgcv)  #gam in the book and change the poly
+library(gam)  #gam in the book and change the poly
 gam.m3 <-gam(price~s(poly(enginesize,4))+carwidth, data=card)
 
 par(mfrow = c(1,3))
