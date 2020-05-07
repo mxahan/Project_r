@@ -72,12 +72,15 @@ summary(lm(price~horsepower+CarName))
 # validation set approach
 
 library(ISLR)
+
+# seed 1
 set.seed(1)
-attach(card)
+#attach(card)
 
-train =  sample(205, 190)
+train =  sample(205, 195)
 
-lm.fit = lm(price~peakrpm+carlength+fueltype+carbody, data = card, subset= train)
+lm.fit = lm(price~ curbweight+carwidth+peakrpm+carlength+fueltype
+            +carbody +enginesize , data = card, subset= train)
 
 summary(lm.fit)
 
@@ -85,51 +88,93 @@ mean((card$price-predict(lm.fit,card))[-train]^2)
 
 
 # preparing quadratic regression
-lm.fit2 = lm(price~poly(peakrpm,2)+poly(carlength,2)+fueltype+carbody, data = card, subset= train)
+lm.fit2 = lm(price~poly(curbweight,2)+poly(carwidth,2)+peakrpm+carlength+fueltype
+             +carbody +enginesize,
+             data = card, subset= train)
 
-summary(lm.fit2)
+
 # Prediction with rest
 mean((card$price-predict(lm.fit2,card))[-train]^2)
 
 # preparing cubic regression
-lm.fit3 = lm(price~poly(peakrpm,2)+poly(carlength,3)+fueltype+carbody, data = card, subset= train)
+lm.fit3 = lm(price~poly(curbweight,3)+poly(carwidth,2)+peakrpm+carlength+fueltype
+             +carbody +enginesize,
+             data = card, subset= train)
 
-summary(lm.fit3)
+mean((card$price-predict(lm.fit3,card))[-train]^2)
+# seed 2
+
+set.seed(4)
+#attach(card)
+
+train =  sample(205, 195)
+
+lm.fit = lm(price~ curbweight+carwidth+peakrpm+carlength+fueltype
+            +carbody +enginesize , data = card, subset= train)
+
+summary(lm.fit)
+
+mean((card$price-predict(lm.fit,card))[-train]^2)
+
+
+# preparing quadratic regression
+lm.fit2 = lm(price~poly(curbweight,2)+poly(carwidth,2)+peakrpm+carlength+fueltype
+             +carbody +enginesize,
+             data = card, subset= train)
+
+
+# Prediction with rest
+mean((card$price-predict(lm.fit2,card))[-train]^2)
+
+# preparing cubic regression
+lm.fit3 = lm(price~poly(curbweight,3)+poly(carwidth,2)+peakrpm+carlength+fueltype
+             +carbody +enginesize,
+             data = card, subset= train)
+
+mean((card$price-predict(lm.fit3,card))[-train]^2)
 # Prediction with rest
 mean((card$price-predict(lm.fit3,card))[-train]^2)
 
 # Leave one-out-cross validation
 # used all continuous value predictor
-glm.fit =  glm(price~peakrpm+carlength+fueltype+carbody, data=card)
+glm.fit =  glm(price~ curbweight+carwidth+peakrpm+carlength+fueltype
+              +carbody +enginesize , data = card)
 coef(glm.fit)
 
+lm.fit =  lm(price~ curbweight+carwidth+peakrpm+carlength+fueltype
+               +carbody +enginesize , data = card)
+coef(lm.fit)
 #Library
 library(boot)
-glm.fit=  glm(price~peakrpm+carlength+fueltype+carbody, data=card)
+set.seed(1)
+glm.fit=  glm(price~curbweight+carwidth+peakrpm+carlength+fueltype
+           +carbody +enginesize , data = card)
 
 cv.err = cv.glm(card, glm.fit)
 cv.err$delta
 
 
-# Polynomial 
+  # Polynomial 
 
 cv.error = rep(0,5)
-
+  
 for (i in 1:5){
-  glm.fit =  glm(price~poly(carlength, i)+carwidth+carbody+fueltype+peakrpm, data=card)
-  cv.error[i] = cv.glm(card, glm.fit)$delta[1]
+    glm.fit =  glm(price~ poly(curbweight,i)+carwidth+peakrpm+carlength+fueltype
+                   +carbody +enginesize , data = card)
+    cv.error[i] = cv.glm(card, glm.fit)$delta[1]
 }
 cv.error
 
 # k fold cross-validation
 
-set.seed(20)
+set.seed(17)
 
 cv.error.10 = rep(0,10)
 
 for (i in 1:10){
-  glm.fit = glm(price~poly(carlength, i)+carwidth+carbody+fueltype+peakrpm, data=card)
-  cv.error.10[i] = cv.glm(card, glm.fit, K = 10)$delta[1]
+  glm.fit = glm(price~ poly(curbweight,i)+carwidth+peakrpm+carlength+fueltype
+                +carbody +enginesize , data = card)
+    cv.error.10[i] = cv.glm(card, glm.fit, K = 10)$delta[1]
 }
 cv.error.10
 
@@ -181,7 +226,7 @@ boot(card,boot.fn,1000)
 summary(lm(price~carlength+I(carlength^2),data=card))$coef
 
 ## chapter 6
-### Lab 1
+### Lab 1 best subset selection
 dim(card)
 
 card =  na.omit(card)
@@ -193,17 +238,19 @@ sum(is.na(card))
 ## Choosing the best feature set by BIC, Cp , AIC ...
 library(leaps)
 
-regfit.full =  regsubsets(price~fuelsystem+peakrpm+citympg+
-                            enginesize+enginetype+carwidth+curbweight+carlength
-                          , card) ## full features cause error
+regfit.full =  regsubsets(price~fuelsystem+peakrpm+citympg
+                          + enginesize+enginetype+carwidth+curbweight+carlength
+                          + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                          + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                          data = card) ## full features cause error
 
 summary(regfit.full)
 
-regfit.full = regsubsets(price~fuelsystem+peakrpm+citympg+
-                           enginesize+enginetype+carwidth+curbweight+carlength
+regfit.full = regsubsets(price~fuelsystem+peakrpm+citympg
+                         + enginesize+enginetype+carwidth+curbweight+carlength
                          + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
-                         + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio, 
-                         data = card, nvmax = 19)
+                         + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                         data = card, nvmax = 17)
 
 reg.summary =  summary(regfit.full)
 
@@ -241,14 +288,14 @@ plot(regfit.full, scale = "Cp")
 
 plot(regfit.full, scale = "bic")
 
-coef(regfit.full, 13)
+coef(regfit.full, 7)
 
 ## Foward and Backward stepwise selection
 regfit.fwd  = regsubsets(price~fuelsystem+peakrpm+citympg
                          + enginesize+enginetype+carwidth+curbweight+carlength
                          + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
                          + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio, 
-                         data= card, nvmax =19, method = "forward")
+                         data= card, nvmax =8, method = "forward")
 
 summary(regfit.fwd)
 
@@ -257,7 +304,7 @@ regfit.bwd  = regsubsets(price~fuelsystem+peakrpm+citympg
                          + enginesize+enginetype+carwidth+curbweight+carlength
                          + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
                          + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio, 
-                         data= card, nvmax =19, method = "backward")
+                         data= card, nvmax =8, method = "backward")
 
 summary(regfit.bwd)
 
@@ -276,9 +323,9 @@ train = sample(c(TRUE, FALSE), nrow(card), rep= TRUE)
 test = (!train)
 
 regfit.best  = regsubsets(price~fuelsystem+peakrpm+citympg
-                         + enginesize+enginetype+carwidth+curbweight+carlength
-                         + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
-                         + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio, 
+                          + enginesize+enginetype+carwidth+curbweight+carlength
+                          + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                          + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
                          data= card[train,], nvmax =19)
 
 test.mat =  model.matrix(price~., data = card[test,])
@@ -349,9 +396,9 @@ coef(reg.best, 11)
 ## part 2 LAB 2
 
 x =  model.matrix(price~fuelsystem+peakrpm+citympg
-                        + enginesize+enginetype+carwidth+curbweight+carlength
-                        + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
-                        + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio, 
+                  + enginesize+enginetype+carwidth+curbweight+carlength
+                  + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                  + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
                         data= card)[,-1]
 
 
@@ -362,86 +409,66 @@ y = price
 library(glmnet)
 
 grid  = 10^seq(10,-2,length=100)
-
 ridge.mod = glmnet(x,y, alpha = 0, lambda = grid)
-
 dim(coef(ridge.mod))
 
-ridge.mod$lambda[50]
+ridge.mod$lambda[40]
+coef(ridge.mod)[,40]
+sqrt(sum(coef(ridge.mod)[-1, 40]^2))
 
 ridge.mod$lambda[60]
-
+coef(ridge.mod)[,60]
 sqrt(sum(coef(ridge.mod)[-1, 60]^2))
 
 predict(ridge.mod, s = 50, type= "coefficients")[1:20,]
 
 set.seed(1)
-
 train = sample(1:nrow(x), nrow(x)/2)
-
 test = (-train)
-
 y.test = y[test]
 
+
 ridge.mod =  glmnet(x[train,], y[train], alpha = 0, lambda = grid, thresh = 1e-12)
-
 ridge.pred =  predict(ridge.mod, s =4, newx = x[test,])
-
 mean((ridge.pred - y.test)^2)
+
 
 mean((mean(y[train])-y.test)^2)
 
 ridge.pred =  predict(ridge.mod, s = 1e10, newx = x[test,])
-
 mean((ridge.pred-y.test)^2)
 
-ridge.pred = predict(ridge.mod, s =0, newx = x[test,], exact = T)
 
+ridge.pred = predict(ridge.mod, s =0, newx = x[test,])
 mean((ridge.pred-y.test)^2)
 
 lm(y~x, subset =  train)
-
-predict(ridge.mod, s=0,  newx = x[test,])[1:20,]
+predict(ridge.mod, s=0,  newx = x[test,], type="coefficients")[1:20,]
 
 set.seed(1)
-
 cv.out = cv.glmnet(x[train, ], y[train], alpha = 0)
-
 plot(cv.out)
-
 bestlam = cv.out$lambda.min
-
 bestlam
 
 ridge.pred = predict(ridge.mod, s =bestlam, newx = x[test,])
-
 mean((ridge.pred - y.test)^2)
 
 out =  glmnet(x,y, alpha = 0)
-
 predict(out, type = "coefficients", s = bestlam)[1:20,]
 
 ### Lasso
 lasso.mod = glmnet(x[train,], y[train], alpha = 1, lambda = grid)
-
 plot(lasso.mod)
 
 set.seed(1)
-
 cv.out =  cv.glmnet(x[train,], y[train], alpha=1)
-
 plot(cv.out)
-
 bestlam = cv.out$lambda.min
-
 lasso.pred = predict(lasso.mod, s =bestlam, newx = x[test,])
-
 mean((lasso.pred-y.test)^2)
-
 out = glmnet(x,y, alpha =1, lambda =grid)
-
 lasso.coef = predict(out, type ="coefficients", s= bestlam)[1:20,]
-
 lasso.coef
 
 lasso.coef[lasso.coef != 0]
@@ -451,36 +478,36 @@ lasso.coef[lasso.coef!=0]
 #### lab 3 part 3
 
 library(pls)
-
 set.seed(2)
-
-pcr.fit = pcr(price~fuelsystem+peakrpm+citympg
-              + enginesize+enginetype+carwidth+curbweight+carlength
-              + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
-              + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
-              data = card, scale = TRUE)
-
+pcr.fit = pcr(price~peakrpm+citympg+ enginesize
+              +carwidth+curbweight+carlength
+              + highwaympg+  horsepower+enginelocation,
+              data = card, scale = TRUE, validation = "CV")
 summary(pcr.fit)
+
 
 validationplot(pcr.fit, val.type = "MSEP")
 
 set.seed(1)
 
-pcr.fit = pcr(price~fuelsystem+peakrpm+citympg
-              + enginesize+enginetype+carwidth+curbweight+carlength
-              + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
-              + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
-              data = card, scale = TRUE)
-
-summary(pcr.fit)
+pcr.fit = pcr(price~peakrpm+citympg+ enginesize
+              +carwidth+curbweight+carlength
+              + highwaympg+  horsepower+enginelocation,
+              data = card, scale = TRUE, validation = "CV")
 
 validationplot(pcr.fit, val.type = "MSEP")
 
-pcr.pred = predict(pcr.fit, x[test,], ncomp =7)
 
+x =  model.matrix(price~peakrpm+citympg+ enginesize
+                  +carwidth+curbweight+carlength
+                  + highwaympg+  horsepower+enginelocation,
+                  data= card)[,-1]
+
+
+y = price
+pcr.pred = predict(pcr.fit, x[test,], ncomp =8)
 mean((pcr.pred - y.test)^2)
-
-pcr.fit =  pcr(y~x, scale= TRUE, ncomp = 7)
+pcr.fit =  pcr(y~x, scale= TRUE, ncomp = 8)
 
 summary(pcr.fit)
 
