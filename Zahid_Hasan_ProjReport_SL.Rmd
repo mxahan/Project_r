@@ -1,0 +1,58 @@
+---
+title: "report_test"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+card <- read.csv("CarPrice_Assignment.csv")
+coln <- colnames(card)
+print(coln)
+```
+
+## Including Plots
+
+You can also embed plots, for example
+
+```{r pressure, echo=FALSE}
+plot(card$cylindernumber, card$price)
+```
+```{r}
+summary(card)
+```
+```{r}
+hist(card$price, col = 2, breaks = 20)
+```
+
+
+```{r}
+d1=read.table("student-mat.csv",sep=";",header=TRUE)
+d2=read.table("student-por.csv",sep=";",header=TRUE)
+
+d3=merge(d1,d2,by=c("school","sex","age","address","famsize","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery","internet"))
+print(nrow(d3)) # 382 students
+summary(d2)
+```
+```{r}
+hist(d2$G3, col =2, breaks = 20)
+```
+```{r}
+hrp <- read.csv("framingham.csv")
+summary(hrp)
+```
+```{r}
+hist(hrp$TenYearCHD, col =2, breaks=15)
+```
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
