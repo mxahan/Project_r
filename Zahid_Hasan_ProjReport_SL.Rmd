@@ -1,6 +1,5 @@
 ---
-title: 
-- Final Project Report for Advanced Quantitative Methods of IS Research-Statistical Learning 
+title: "Final Project Report for IS 804 Advanced Quantitative Methods for IS Research: Statistical Learning" 
 author: 
 - Zahid Hasan^[Ph.D. Student, Information System, UMBC]
 output: 
