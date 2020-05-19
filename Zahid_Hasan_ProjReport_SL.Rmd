@@ -1,58 +1,1858 @@
 ---
-title: "report_test"
-output: pdf_document
+title: 
+- Final Project Report for Advanced Quantitative Methods of IS Research-Statistical Learning 
+author: 
+- Zahid Hasan^[Ph.D. Student, Information System, UMBC]
+output: 
+- pdf_document
 ---
+
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+In this project, I apply statistical learning metods from  ISLR book on the publicly available car price dataset kaggle website in the following [link](https://www.kaggle.com/ankitakaggle/car-price). My all works related to this project are also avaiable at my github [link](https://github.com/mxahan/Project_r).
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
+# Chapter 2
+
+
+I start the experiment by adding the dataset in the working environment. The summary and name would provide the variables related to dataset. By attaching them it is convenient to call them using their name directly. 
+```{r cars_dataload}
 card <- read.csv("CarPrice_Assignment.csv")
+attach(card) # attaching the variable names
 coln <- colnames(card)
 print(coln)
-```
-
-## Including Plots
-
-You can also embed plots, for example
-
-```{r pressure, echo=FALSE}
-plot(card$cylindernumber, card$price)
-```
-```{r}
 summary(card)
 ```
-```{r}
-hist(card$price, col = 2, breaks = 20)
+
+## Basic codes from the  chapter 2
+The chapter two introduces as some of the important introductory concept in R. In this chapter I have run and understand the basics from the book and showed it here. I will be using the codes to my dataset to implement the introductory codes and check the lengths and summary. 
+
+In this section, I will be also ploting the statictical parameters like mean, vaiances of the output variable and some input predictor variables.
+```{r basics2_chaper}
+library(ISLR)  # making all dataset available
+x <- c(1,6,2)
+y <- c(1,4,3)
+x-y       #x+y, x*y
+length(card) # length(y)
+ls() # check existing variables
+rm(x,y) # remove variables
+x <- matrix(data=c(1,2,3,4), nrow=2, ncol=2)
+matrix(c(1,2,3,4),2,2, byrow=TRUE)
+x^2
+sqrt(x)
+x <- rnorm(50)
+y <- x + rnorm(50, mean=50, sd=1)
+cor(x,y)
+set.seed(1303)
+rnorm(50)
+set.seed(3)
+y <- rnorm(100)
+mean(y)
+var(y)
+sqrt(var(y))
+sd(y)
+```
+
+Now implementing the commands to get the dataset description on output variables. 
+```{r basics2_data_output}
+mean(price)
+var(price)
+sqrt(var(price))
+sd(price)
+mode(price)
+```
+
+We can also implementing the commands to get the statistical parameters for the input variables too.  
+```{r basics2_data_ip_es}
+mean(enginesize)
+var(enginesize)
+sqrt(var(enginesize))
+sd(enginesize)
+mode(enginesize)
+```
+## Plot function from chapter 2
+In this section using the plot option shown in chapter 2, I plot some the variables together to find the relationship between them and the output predictors. I used both categorical and continuous predictor to demonstrate the relationship between them. 
+
+```{r plot_ch2}
+plot(enginesize, price)
+plot(carwidth, price)
+plot(CarName, price)
+plot(carlength, carheight)
+plot(enginelocation, price)
+plot(enginetype, price)
+plot(peakrpm, horsepower)
+plot(stroke, price)
+```
+
+In those we can observe that some variables like enginesize, carwidth are closely related to predictor variables (Price). Some relations are not obvious form the plots like stroke and price. 
+
+# Chapter 3
+
+In this section, I will be implement codes of linear regression in my dataset. Firstly, I will apply linear regression using all the predictor features. Then I will narrow the features for better understand and explain the code and methods. 
+
+```{r chapter3_c1}
+attach(card)
+
+attach(card)
+lm.fit = lm(price~., data =  card)
+#lm.fit = lm(price~fuelsystem+peakrpm+citympg+CarName+enginesize+enginetype+carwidth+curbweight+carlength+highwaympg+boreratio+stroke+wheelbase+drivewheel+enginelocation+aspiration+doornumber+horsepower+compressionratio,data=card)
+summary(lm.fit)
+
+```
+By focusing on carname feaure only 
+```{r chaper3_carnames}
+
+lm.fit1 = lm(price~CarName)
+summary(lm(price~horsepower+CarName))
+```
+## Simple Linear Regression
+
+From above result we can say that car name provides too much information regarding the car price. In this project we are more focused on getting car price from car inbuilt features like size, engine quality, top-speed. We will be avoiding the carnames from now on as feature list. IN this pae we apply simple linear regression on the the car price dataset. As we are selecting only one feaures. 
+```{r chapter3_c2}
+lm.fit = lm(price~enginesize)
+lm.fit
+```
+After fitting the model by calling names and coefficient the r will return model parameters and coefficients for considered variables. 
+```{r ch3_fitParamesName}
+names(lm.fit)
+
+coef(lm.fit)
+
+confint(lm.fit)
+```
+After fitting the model we can see the the performance of model fit. By summarizing the different statistical parameters; F-score, significance for the model we can understand the model fitness. We can see the p-value low for the significance and reject the null-hypothesis
+```{r ch3_sum_simple_lr} 
+
+summary(lm.fit)
+```
+As we have a trained model we can use the model to predict the car price from car features using the trained linear regression model. We can also plot the output and variables. In R we do this by as follows
+```{r ch3_model_plo_predict}
+predict(lm.fit,data.frame(enginesize=(c(5,10,15))), interval="confidence")
+
+predict(lm.fit,data.frame(enginesize=(c(5,10,15))), interval="prediction")
+
+plot(horsepower, price)
+
+```
+Now considering adding more variables 
+
+## Multiple Linear Regression
+
+In the next section I will be using more than one variables and examine the summary of the linear regression model. For this we choose the car length and horsepower for discussing the results more clearly. We select the car length and horsepower by observing the summary of model from earlier analysis. The three stars shows their significance. 
+```{r chapter3_c3mr}
+lm.fit = lm(price~carlength+horsepower)
+lm.fit
+plot(enginesize, price)
+```
+In this experiment we conduct our analysis by incorporting more variables. We retrain the model using different features sets. We reevaluate the performance by considering the selected features set.
+```{r ch3_morevariables}
+lm.fit = lm(price~enginelocation+enginesize+carlength+aspiration
+            +curbweight+drivewheel, data =  card)
+summary(lm.fit)
+```
+In the following section, I will be implement the polymial regression by using polynomials of features and lm function in R. 
+```{r chapter3_c4}
+summary(lm(price~poly(peakrpm,4)+aspiration+carlength+carheight
+           +curbweight+fuelsystem+doornumber+wheelbase
+           +enginetype, data =card))
+
+```
+From the F-staticstics value 134 which is much higer than 1, it is evident that at least one features are related to the output variable car price. 
+
+
+
+
+
+# Chapter 4
+
+In the car dataset the output predictor is car price;a continuous varible. To apply classification techniques I reorganize my output predictor variable price as high and low based on median threshold. I have observe the price median as 10300. We label the price greater than threshold are high Yes and below No. We have created a classification problem of car price high or low in the car price dataset. We try to predict the car price label based on the data features. First we load the data.
+
+```{r ch4_cc1}
+
+library(ISLR)
+
+
+dim(card)
+
+plot(price)
+
+high = as.factor(ifelse(price<=10300, "No", "Yes"))
+
+card = data.frame(card, high)
+```
+
+## Logistic Regression
+
+We fit the model as targetting the created class labels high. 
+
+```{r ch4_new123}
+glm.fits=glm(as.numeric(high)~fuelsystem+peakrpm+citympg
+             + enginesize+enginetype+carwidth+curbweight+carlength,
+             data = card)
+```
+After fitting the model we look into the fitted model by summary function. 
+```{r sumch4_clas}
+summary(glm.fits)
+coef(glm.fits)
+summary(glm.fits)$coef
+summary(glm.fits)$coef[,4]
+```
+From the summary above we see the significance of the fuelsystem and curbweight are highest based on their smaller p-value. 
+
+Now we check the classifiers performance based on its decision on the dataset. For that we create the confusion matrix for the classifier. 
+```{r ch4_contrast123}
+glm.probs=predict(glm.fits,type="response")
+glm.probs[1:10]
+contrasts(high)
+
+
+glm.pred=rep("No", 205)
+glm.pred[glm.probs>1.5]="Yes"
+table(glm.pred, high)
+
+
+mean(glm.pred==high)
+```
+From the result we can see that the model have correctly classified 89 no instances and 98 No instances. The model accuracy is 91.22% in the training instances. 
+
+Now in next case we only consider case where peakrpm is lower than 6000 we devide our dataset by taking the instances where peak values are smaller than 6000. We refit the model using the cropped dataset.
+```{r ch4_validationset}
+
+train=(peakrpm<6000)
+ccard.6000=card[!train,]
+dim(ccard.6000)
+high.6000=high[!train]
+
+
+glm.fits=glm(as.numeric(high)~peakrpm+citympg
+             + enginesize+carwidth+curbweight+carlength,
+             data = card, subset = train)
+  
+  
+glm.probs=predict(glm.fits,ccard.6000,type="response")
+```
+By selecting appropriate threshold we can get the prediction form the model for the 11 test dataset. 
+```{r ch4_valvalres}
+glm.pred=rep("No",11)
+glm.pred[glm.probs>1.5]="Yes"
+table(glm.pred,as.factor(high.6000))
+mean(glm.pred==high.6000)
+mean(glm.pred!=high.6000)
+```
+Here the model sucessfully classifed all the instances from the features; 7 no and 4 yes classes
+
+We can consider only 3 variables to check the synergy. For that we take 3 variables to fit the high class. 
+```{r ch4_3varsyn}
+glm.fits=glm(as.factor(high)~carwidth+curbweight+enginesize,
+             data=card,family=binomial,subset=train)
+glm.probs=predict(glm.fits,ccard.6000,type="response")
+glm.pred=rep("No",11)
+glm.pred[glm.probs>.2]="Yes"
+table(glm.pred,high.6000)
+mean(glm.pred==high.6000)
+```
+After preparing the model, we can see that the model again perform well on the test dataset. It again classified all the test instance correctly. We can see the result in the above confusion matrix. 
+
+## Linear Discriminant Analysis
+
+In this section we implement LDA on the high class for car data we created in earlier example. 
+```{r ch4_lda_start}
+library(MASS)
+
+lda.fit=lda(as.factor(high)~carwidth+enginesize,
+            data=card,subset=train) # fitting model
+
+lda.fit # provides summary
+
+plot(lda.fit)
+```
+Frob above plot we see the difference in distribution between high and low class for the car price. We can use the previous model to predict new outcome
+```{r ch4_ldafitplot}
+lda.pred=predict(lda.fit, ccard.6000)
+
+names(lda.pred)
+
+lda.class=lda.pred$class
+
+
+table(lda.class,high.6000)
+
+mean(lda.class==high.6000)
+
+```
+The model failed to correctly classify any yes instance in the previous section. It predicted all as NO. We can change the threshold to check result across the threshold. 
+
+```{r ch4_ladchtreshold}
+# changing default threshold
+sum(lda.pred$posterior[,1]>=.9)
+sum(lda.pred$posterior[,1]<.9)
+
+lda.pred$posterior[1:11,1]
+lda.class[1:11]
+sum(lda.pred$posterior[,1]>.9)
+```
+In this case by changing the threshold we get better prediciton for the same model.
+
+## Quadratic Discriminant Analysis 
+```{r ch4_ldaposterior}
+qda.fit=qda(as.factor(high)~carwidth+enginesize,data=Smarket,subset=train)
+qda.fit
+qda.class=predict(qda.fit, ccard.6000)$class
+table(qda.class, high.6000)
+mean(qda.class==high.6000)
+```
+From the output we can see that quadradic discrimant analysis provide accurate result on classifying test data. It predicted all 7 no and 4 yes class correctly. 
+
+## K-Nearest Neighbors
+
+In this section, we implement k-nearest Neighbors for the car data to classify the car price as high or no. 
+```{r ch4_knnclass}
+# need class library
+library(class)
+train.X=cbind(carwidth,enginesize, fuelsystem, curbweight)[train,]
+
+test.X=cbind(carwidth,enginesize, fuelsystem, curbweight)[!train,]
+
+train.high=high[train]
+
+set.seed(1) # reproducible result
+# 4 arguments 
+knn.pred=knn(train.X,test.X,train.high,k=5)
+
+table(knn.pred,high.6000)
+
+# increasing the number of K (3 in this case)
+knn.pred=knn(train.X,test.X,train.high,k=3)
+
+table(knn.pred, high.6000)
+
+mean(knn.pred==high.6000)
+```
+The KNN failed to classify the car price high class. I have conducted experiment for different k values (5,10,15,25). In the previous result, the classifier correctly classified 10 intance out of 11 when KNN k-value is 3. By changing k to 5, the model loose it performance and detect 8 correctly out of 11 test instancs. 
+
+# Chapter 5
+In this section, I implement some of the resampling method on the car data from the textbook. Firstly, the validation set approach has been discussed.
+
+## Validation Set Approach
+
+The car dataset contains 205 instances. For this experiment, I take 195 for training and rest 10 for validation set. The random seed is here to remove the selection bias. 
+```{r ch5_cc1}
+# seed 1
+set.seed(1)
+#attach(card)
+train =  sample(205, 195)
+```
+The train dataset consists of 195 instances randomly taken from the 205 instances. The model is trained using this 195 instances. 
+```{r ch5_cc2_datafit}
+
+lm.fit = lm(price~ curbweight+carwidth + peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight, 
+            data = card, subset= train)
+
+summary(lm.fit)
+
+mean((card$price-predict(lm.fit,card))[-train]^2)
+
+```
+From above, we can see that the carbody, enginesize and incept has the smallest p-value. The F-statistic value is higher than 1. And R-squared value is close to one, meaning covering the data variance by the features.
+
+We get the error of 3626699 for training a linear model. We will compare polynomial of two and three model for the same features on the same test dataset. 
+
+In the next section, I will use quadratic regression to experiment with the validation set approach. I will implement different model and check their performance based on the validation set result. 
+```{r ch5_after_ttv}
+# preparing quadratic regression
+lm.fit2 = lm(price~poly(curbweight,2)+poly(carwidth,2)+peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight,
+             data = card, subset= train)
+
+summary(lm.fit2)
+# Prediction with rest
+mean((card$price-predict(lm.fit2,card))[-train]^2)
+```
+After training order 2 polynomials the prediction error in the model are 4236347 in the test dataset. 
+```{r ch5_cubregMod}
+# preparing cubic regression
+lm.fit3 = lm(price~poly(curbweight,3)+poly(carwidth,3)+peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight,
+             data = card, subset= train)
+
+mean((card$price-predict(lm.fit3,card))[-train]^2)
+```
+By using the, the third order polynomial on curbwidth, we see the new errors are 4489315, slightly higher than the quadratic polynomial (4236347) on the first two features and also smaller than the linear regression model whose error was 3626699 To summarize the result, the linear worked best on the linear regression model. 
+
+By changing seed and re-evaluating the same model we can expect a slight different result. The seed changes the 10 test data samples randomly. 
+```{r ch5_new_seed_copy}
+
+set.seed(4)
+#attach(card)
+
+train =  sample(205, 195)
+
+lm.fit = lm(price~ curbweight+carwidth+peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight, 
+            data = card, subset= train)
+
+summary(lm.fit)
+
+mean((card$price-predict(lm.fit,card))[-train]^2)
+```
+From the newdata sampling, the new error on the linear regression model is 3290316, slightly smaller than earlier experiment with seed 1. Next we train the quadratic model. 
+```{r ch5_seed2_quad}
+
+# preparing quadratic regression
+lm.fit2 = lm(price~poly(curbweight,2)+poly(carwidth,2)+peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight,
+             data = card, subset= train)
+
+
+# Prediction with rest
+mean((card$price-predict(lm.fit2,card))[-train]^2)
+```
+In the quadratic model the new error on test set become the error is 2497317, almost half of the earlier example. In this case it seems quadradic model is better than linear model. 
+```{r ch5_cub_seedv4}
+# preparing cubic regression
+lm.fit3 = lm(price~poly(curbweight,3)+poly(carwidth,3)+peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight,
+             data = card, subset= train)
+summary(lm.fit3)
+
+mean((card$price-predict(lm.fit3,card))[-train]^2)
+```
+In this case, the quadratic model gets the error of 2714493, a little higher than quadratic model. In this test case, the quadratic model performed best.
+
+## Leave one-out-cross validation
+
+In this resampling method, we put one training instance as the test example to check the model performances. 
+```{r ch5_Loocv_begin}
+# used all continuous value predictor
+glm.fit =  glm(price~ curbweight+carwidth+peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight , 
+             data = card)
+coef(glm.fit)
+
+lm.fit =  lm(price~  curbweight+carwidth+peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight ,
+             data = card)
+coef(lm.fit)
+```
+The glm and lm provided the same result, which is evident by previous result of th coefficient values
+```{r ch5_leoone_glmexperi}
+#Library
+library(boot)
+set.seed(1)
+glm.fit=  glm(price~ curbweight+carwidth+peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight ,
+             data = card)
+
+cv.err = cv.glm(card, glm.fit)
+cv.err$delta
+```
+We get the error value of 11M. 
+```{r ch5_polymodel}
+
+  # Polynomial 
+
+cv.error = rep(0,5)
+  
+for (i in 1:5){
+    glm.fit =  glm(price~ poly(curbweight, i)+carwidth+peakrpm+horsepower+
+             +carlength+fueltype +carbody +poly(enginesize,i)
+             +carheight , data = card)
+    cv.error[i] = cv.glm(card, glm.fit)$delta[1]
+}
+cv.error
+```
+Now, applying polynomials upto 5, we see that the average error decreses in the third and forth polymial about 8M on the test left data instance. 
+
+## k fold cross-validation
+
+In k-fold we partition data in k sections and use k-1 as the training instance and test on the rest partition. 
+
+```{r ch5_kfcv_start_957}
+set.seed(17)
+
+cv.error.10 = rep(0,10)
+
+for (i in 1:10){
+  glm.fit = glm(price~ poly(curbweight,i)+carwidth
+                +peakrpm+horsepower+carlength+fueltype +carbody
+             +poly(enginesize,i)+carheight , data = card)
+    cv.error.10[i] = cv.glm(card, glm.fit, K = 10)$delta[1]
+}
+cv.error.10
+```
+In the previous result, we see error decreases initially with the model degree and again rises showing overfit and huge training error on test dataset. The high polynomial model suffers from high variance problem. 
+
+
+
+## Bootstrap
+
+To implement boostrap we will use boot function. 
+
+```{r ch5_bs_bsteign584}
+alpha.fn=function(data,index){
+  X=data$carlength[index]
+  Y=data$price[index]
+  return((var(Y)-cov(X,Y))/(var(X)+var(Y)-2*cov(X,Y)))
+}
+
+alpha.fn(card,1:100)
+```
+
+This provide the alpha value of 1.001215, now we select seed to recompute the alpha value for the car dataset. We take 100 samples in consideration. 
+```{r ch5_bssedd1_surely}
+set.seed(1)
+alpha.fn(card,sample(100,100,replace=T))
+```
+Recomputing we get the value of 1.001173, very similar to the earlier sampling dataset. 
+
+```{r ch5_bsrecomputeafter}
+boot(card,alpha.fn,R=1000)
+```
+The previous result shows the statistical distribution of alpha. The original value is about 1, with very low bias and standard deviation. 
+
+We will use the bootstrap model to analyse the performance of the linear model fit using the car dataset. 
+```{r ch5_after_boot154879}
+boot.fn=function(data,index)
+  return(coef(lm(price~ curbweight+carwidth+peakrpm+horsepower+
+             +carlength+fueltype +carbody +enginesize+carheight
+             ,data=card,subset=index)))
+
+boot.fn(card, 1:203)
+
+```
+```{r ch5_mode_bs_diffseed}
+set.seed(1)
+
+boot.fn(card,sample(205,205,replace=T))
+
+boot.fn(card,sample(205, 205,replace=T))
+
+boot(Auto,boot.fn,100)
+```
+Here the above result gives the features value and their bias variances. We can see that carbody has the highest stardard deviation of 3346. 
+
+```{r ch5_result_explabs}
+summary(lm(price~carlength,data=card))$coef
+
+
+summary(lm(price~carlength+carwidth+peakrpm,data=card))$coef
+
+
+
+boot.fn=function(data,index)
+  coefficients(lm(price~carwidth+I(carwidth^2),data=card,subset=index))
+set.seed(1)
+boot(card,boot.fn,1000)
+summary(lm(price~carwidth+I(carwidth^2),data=card))$coef
+
+boot.fn=function(data,index)
+  coefficients(lm(price~carlength+I(carlength^2),data=card,subset=index))
+set.seed(1)
+boot(card,boot.fn,1000)
+summary(lm(price~carlength+I(carlength^2),data=card))$coef
+```
+In ealier result we see the comparison of applying the feature and the square of the features. The carlength both the parameter and square have similar bootshraping error.
+
+
+
+# Chapter 6
+
+In this section, the model selection methods like best subset selection and dimentionality reduction techniques are applied on the car dataset.
+
+
+## Best Subset Selection
+
+Firstly we remove the missing data instances from the dataset. 
+```{r ch6_cc1}
+### Lab 1 best subset selection
+dim(card)
+
+card =  na.omit(card)
+
+dim(card) 
+
+sum(is.na(card))
+```
+
+From the sum result of 0 we know that there are no missing data points in the datset instances. 
+```{r ch9_afterdmissingremove}
+
+## Choosing the best feature set by BIC, Cp , AIC ...
+library(leaps)
+attach(card)
+
+regfit.full =  regsubsets(price~fuelsystem+peakrpm+citympg
+                          + enginesize+enginetype+carwidth+curbweight+carlength
+                          + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                          + enginelocation+ aspiration+ doornumber
+                          + horsepower+ compressionratio,
+                          data = card) 
+
+summary(regfit.full)
+```
+In above the model selected the best model based on the Residual sum of squared error. The * locations in the model shows that the best model takes the feaure of engine size and the second model considers the enginesize and drivewheel position. This experiment showed top 8 models we can extend that by providing nvmax parameters as follows. 
+```{r ch6_aftergiregfitfullwithd}
+
+regfit.full = regsubsets(price~fuelsystem+peakrpm+citympg
+                         + enginesize+enginetype+carwidth+curbweight+carlength
+                         + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                         + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                         data = card, nvmax = 19)
+
+summary(regfit.full)
+reg.summary =  summary(regfit.full)
+names(reg.summary)
+
+reg.summary$rsq
+```
+Now the result shows top 17 models with the r squared values of the model with different top features. 
+
+```{r ch5_changednvmax}
+
+
+par(mfrow = c(2,2))
+
+plot(reg.summary$rss, xlab= "number of variables", ylab = "RSS")
+
+plot(reg.summary$adjr2, xlab= "number of variables", ylab = "adjusted  Rsq")
+which.max(reg.summary$adjr2) # return 17
+points(17, reg.summary$adjr2[17], col ="red", cex = 2, pch =20)
+
+```
+The plot shows the model error decrese with increasing variable numbers. 
+
+The previous value retuns 17. We will use this to plot the cp and BIC statistics. 
+```{r ch6_1stvaluechecks}
+
+plot(reg.summary$cp, xlab= "number of variables", ylab = "Cp")
+which.min(reg.summary$cp) #18
+
+points(17, reg.summary$cp[17], col ="red", cex = 2, pch =20)
+
+which.min(reg.summary$bic) #13
+
+plot(reg.summary$bic, xlab= "number of variables", ylab = "BIC")
+
+points(13, reg.summary$bic[13], col ="red", cex = 2, pch =20)
+```
+The Cp value decrease with new features, now we do the same for the BIC criterion for too in the car dataset. We observe from the above model that BIC selected the 13 feature model as the best candidate while Cp selected 17 feature/predictor variables models. 
+```{r ch6_resumineshoueldwhoknow}
+
+
+plot(regfit.full, scale = "r2")
+
+plot(regfit.full, scale = "adjr2")
+
+plot(regfit.full, scale = "Cp")
+
+plot(regfit.full, scale = "bic")
+
+coef(regfit.full, 7)
+```
+Here the above plot show different model with different criterion BIC, Cp as they select different feature set. 
+
+## Foward and Backward stepwise selection
+
+
+We use the parameter method to select backward or forward selection
+
+In this method, the model start with smallest variables and add new variable in the next iteration.
+
+```{r ch6_steat_forback}
+regfit.fwd  = regsubsets(price~fuelsystem+peakrpm+citympg
+                         + enginesize+enginetype+carwidth+curbweight+carlength
+                         + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                         + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio, 
+                         data= card, nvmax =8, method = "forward")
+
+summary(regfit.fwd)
+```
+The forward selection method selects enginesize at first and then drivewheel and never drops the fearures. While in earlier method, in subset selection based on BIC/Cp some features were dropped later on. The backward traces in the reverse way it started with all the variables. In backward selection once the feature is dropped it is not recovered later. 
+
+We see the following result of backward in the following results
+```{r ch6_fwrorsurehua}
+
+
+regfit.bwd  = regsubsets(price~fuelsystem+peakrpm+citympg
+                         + enginesize+enginetype+carwidth+curbweight+carlength
+                         + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                         + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio, 
+                         data= card, nvmax =8, method = "backward")
+
+summary(regfit.bwd)
+```
+Here we see the difference in features for the backward model compared to forward model. For example the second best model for backward and forward are different as shown in above figure. 
+```{r ch6_regfitmodeallcomparea}
+coef(regfit.full, 7)
+
+coef(regfit.fwd, 7)
+
+coef(regfit.bwd, 7)
+```
+From above result we see that the coefficient and features are different three approaches of subset selection, forward and backward selection.
+
+## Validation Approach
+
+Firstly, we divide the car data instances in test and train set. 
+```{r ch6boikoisevalapproce}
+set.seed(1)
+
+train = sample(c(TRUE, FALSE), nrow(card), rep= TRUE)
+
+test = (!train)
+```
+Now we apply the subset selection method.
+
+```{r ch5_seedindonvalstart}
+
+regfit.best  = regsubsets(price~peakrpm+citympg
+                          + enginesize+enginetype+carwidth+ curbweight+carlength
+                          + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                          + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                         data= card[train,], nvmax =19)
+```
+Now we test it on the separated set as we trained only using the training examples. 
+```{r ch5_no6_gotitrightnow}
+test.mat =  model.matrix(price~peakrpm+citympg
+                          + enginesize+enginetype+carwidth+ curbweight+carlength
+                          + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                          + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio, data = card[test,])
+
+val.errors = rep(NA, 19)
+
+for (i in 1:19){
+  coefi = coef(regfit.best, id = i)
+  pred =  test.mat[, names(coefi)]%*%coefi
+  val.errors[i] =  mean((price[test]-pred)^2)
+}
+```
+In previous we created test and cross validation set. I will use it to check model performance. 
+```{r ch6_useorepreidict}
+
+val.errors
+
+which.min(val.errors) # output 7
+
+coef(regfit.best, 7)
+```
+In the output the model shows the 7 varibles for the best model. Then we carry out our analysis by taking the best model.
+
+```{r ch6_objdctoirnfhoadopqietner}
+
+predict.regsubsets = function(object, newdata, id, ...){
+  form  =  as.formula(object$call[[2]])
+  mat = model.matrix(form, newdata)
+  coefi =  coef(object, id  =id)
+  xvars = names(coefi)
+  mat[, xvars]%*%coefi
+}
+```
+The above function is an user defined prediction method. 
+```{r ch6_page263foxitreader}
+
+regfit.best =  regsubsets(price~peakrpm+citympg
+                          + enginesize+enginetype+carwidth+ curbweight+carlength
+                          + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                          + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                          data= card, nvmax = 19)
+
+coef(regfit.best, 7)
+```
+Now we take 10 training set. 
+```{r ch6_pageislr264Foxit}
+k = 10
+set.seed(1)
+folds = sample(1:k, nrow(card), replace =TRUE)
+
+cv.errors = matrix(NA, k, 10, dimnames = list(NULL, paste(1:10)))
+```
+
+```{r ch6_ktriainPage264}
+for (j in 1:k){
+  best.fit =  regsubsets(price~peakrpm+citympg+ enginesize+fueltype
+                         +carwidth+curbweight+carlength
+                         + highwaympg+ boreratio+ stroke + wheelbase, 
+                         data= card[folds!=j,], nvmax = 10)
+  for (i in 1:10){
+    pred = predict(best.fit, card[folds==j,], id = i)
+    cv.errors[j, i]= mean((price[folds==j]-pred)^2)
+  }
+} 
+
+```
+
+Now we have 10x10 matrix which (i,j) corresponds to the MSE of ith validation for the best j-variable model
+```{r ch6_stillpage261}
+
+mean.cv.errors = apply(cv.errors, 2, mean)
+
+mean.cv.errors
+
+par(mfrow = c(1,1))
+
+plot(mean.cv.errors, type ="b")
+
+```
+
+The plot shows mean error with different feaures using the cross validation approach. 
+
+```{r ch6_srilohnopage}
+
+reg.best  =  regsubsets(price~fuelsystem+peakrpm+citympg
+                        + enginesize+enginetype+carwidth+curbweight+carlength
+                        + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                        + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio, 
+                        data= card, nvmax = 19)
+
+coef(reg.best, 11)
+```
+
+## Ridge Regression and Lasso
+
+### Ridge Regression
+
+In this experiment the glmnet r package will be used for carry out lasso and ridge regression. In the function we select alpha as 0 for ridgre regression.
+
+```{r ch6_islrepage265finally}
+
+x =  model.matrix(price~fuelsystem+peakrpm+citympg
+                  + enginesize+enginetype+carwidth+curbweight+carlength
+                  + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                  + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                        data= card)[,-1]
+
+
+y = price
+```
+We have renamed our variables to conduct the next experiments. 
+```{r ch6_startlassor265}
+
+library(glmnet)
+
+grid  = 10^seq(10,-2,length=100)
+ridge.mod = glmnet(x,y, alpha = 0, lambda = grid)
+```
+
+```{r ch6_dimcoef}
+dim(coef(ridge.mod))
+```
+
+We get the size of 31x100, where 31 are for 9 predictors and intercept. We have total 30 variables under consideration. The 100 is for 100 different value of lambda. 
+
+
+```{r ch6_newpage266}
+
+ridge.mod$lambda[40]
+coef(ridge.mod)[,40]
+sqrt(sum(coef(ridge.mod)[-1, 40]^2))
+```
+In the above result, we find the l2 norm of 1344 for lambda of 187381
+```{r ch6_newpage266_with60}
+ridge.mod$lambda[60]
+coef(ridge.mod)[,60]
+sqrt(sum(coef(ridge.mod)[-1, 60]^2))
+```
+In the above result, we find the l2 norm of 13753 for lambda of 705. So, we conclude in the car data that for smaller lambda we get smaller l2 error. 
+```{r ch6_pred_newlda}
+predict(ridge.mod, s = 50, type= "coefficients")[1:20,]
+```
+In above we get new prediction for a new lambda of 50.
+
+We split the training instances for estimating test error in rigde and lasso. 
+
+```{r ch6_267newpate}
+set.seed(1)
+train = sample(1:nrow(x), nrow(x)/2)
+test = (-train)
+y.test = y[test]
+```
+
+Now we conduct experiment on the segmented data using glm. 
+
+```{r ch6_cofef267ridge}
+
+
+ridge.mod =  glmnet(x[train,], y[train], alpha = 0, lambda = grid, thresh = 1e-12)
+ridge.pred =  predict(ridge.mod, s =4, newx = x[test,])
+mean((ridge.pred - y.test)^2)
+```
+Using features we find the error of 9866127
+
+```{r ch6_onecompare}
+
+mean((mean(y[train])-y.test)^2)
+```
+If we use only the mean to predict the result we get higher error of 65445936. 
+
+We can aslo check same performance using very high lambda. 
+```{r ch6_hoighlvalieu}
+
+ridge.pred =  predict(ridge.mod, s = 1e10, newx = x[test,])
+mean((ridge.pred-y.test)^2)
+```
+In above we get very similar value of 65M of the earlier mean only model. 
+
+```{r ch6_iguresssmalllabd}
+
+ridge.pred = predict(ridge.mod, s =0, newx = x[test,])
+mean((ridge.pred-y.test)^2)
+
+lm(y~x, subset =  train)
+predict(ridge.mod, s=0,  newx = x[test,], type="coefficients")[1:20,]
+```
+The mean for lambda 0 is similar to 9M of the prediction error of lambda 4. 
+
+```{r ch6_newmodesne2568}
+set.seed(1)
+cv.out = cv.glmnet(x[train, ], y[train], alpha = 0)
+plot(cv.out)
+bestlam = cv.out$lambda.min
+bestlam
+```
+We find the value of best lambda is around 692 using the validation set approach. Now we predict using the best lambda and check the mse value on test dataset. 
+
+```{r ch6_268uafrestlma}
+ridge.pred = predict(ridge.mod, s =bestlam, newx = x[test,])
+mean((ridge.pred - y.test)^2)
+```
+We also find the best model coefficient using the bestlambda. 
+```{r ch6_268_cont}
+out =  glmnet(x,y, alpha = 0)
+predict(out, type = "coefficients", s = bestlam)[1:20,]
+```
+We see the coefficients are not zero that often. 
+
+### Lasso
+
+We use the alpha of 1 to implement lasso using the similar method used for rigde regression. We also plot the model for visualization. 
+
+```{r ch6_lasobeb269}
+lasso.mod = glmnet(x[train,], y[train], alpha = 1, lambda = grid)
+plot(lasso.mod)
+```
+
+I use the random train test split for the lass and find the best lambda value. 
+
+```{r ch6_lasstrainrxt}
+
+set.seed(1)
+cv.out =  cv.glmnet(x[train,], y[train], alpha=1)
+plot(cv.out)
+bestlam = cv.out$lambda.min
+lasso.pred = predict(lasso.mod, s =bestlam, newx = x[test,])
+mean((lasso.pred-y.test)^2)
+```
+For best lambda the lasso also provides the error of about 9M like the ridge model. 
+
+
+```{r ch6_269bulslasocont}
+out = glmnet(x,y, alpha =1, lambda =grid)
+lasso.coef = predict(out, type ="coefficients", s= bestlam)[1:20,]
+lasso.coef
+
+lasso.coef[lasso.coef != 0]
+```
+In lasso coefficient we find many values are zeros unlike the ridge regression. 
+
+## PCR and PLS
+
+### Principle Components Regression (PCR)
+
+For the experiment the pls library of r will be used. 
+```{r ch6_last_sect}
+library(pls)
+set.seed(2)
+pcr.fit = pcr(price~peakrpm+citympg+ enginesize
+              +carwidth+curbweight+carlength
+              + highwaympg+  horsepower+enginelocation,
+              data = card, scale = TRUE, validation = "CV")
+
+
+
+summary(pcr.fit)
+```
+
+We find the the PCR model performed bes in case of 8 components when error is 3182 the lower than anyother. The 5 componest also covered 97% of the total variance. 
+
+```{r ch6_pcrfitMod}
+
+validationplot(pcr.fit, val.type = "MSEP")
+```
+We see the rsult in the plot with the error and components added. 
+
+```{r ch6_271valploend}
+set.seed(1)
+
+pcr.fit = pcr(price~peakrpm+citympg+ enginesize
+              +carwidth+curbweight+carlength
+              + highwaympg+  horsepower+enginelocation,
+              data = card, scale = TRUE, validation = "CV")
+
+validationplot(pcr.fit, val.type = "MSEP")
+```
+The above plot shows the model preformance on the test data. We also observe the lowest error around the 8th components. At next we use the 8 components to predict the error on test instances. 
+
+```{r ch6_page271conts}
+
+x =  model.matrix(price~peakrpm+citympg+ enginesize
+                  +carwidth+curbweight+carlength
+                  + highwaympg+  horsepower+enginelocation,
+                  data= card)[,-1]
+
+
+y = price
+pcr.pred = predict(pcr.fit, x[test,], ncomp =8)
+mean((pcr.pred - y.test)^2)
+
+```
+The test error si 9278896 using the best components. We then retrain the model using the 8 component as found for smallest error. 
+
+```{r ch6_271pcrfinadkmoed}
+pcr.fit =  pcr(y~x, scale= TRUE, ncomp = 8)
+
+summary(pcr.fit)
 ```
 
 
-```{r}
-d1=read.table("student-mat.csv",sep=";",header=TRUE)
-d2=read.table("student-por.csv",sep=";",header=TRUE)
+### Partial Least Squares 
 
-d3=merge(d1,d2,by=c("school","sex","age","address","famsize","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery","internet"))
-print(nrow(d3)) # 382 students
-summary(d2)
+```{r ch6_271butplr}
+
+set.seed(1)
+
+#partial least square
+
+pls.fit = plsr(price~peakrpm+citympg+ enginesize
+               +carwidth+curbweight+carlength
+               + highwaympg+  horsepower+enginelocation,
+               data = card,  scale = TRUE, validation = "CV")
+
+summary(pls.fit)
+
+validationplot(pls.fit, val.type = "MSEP")
 ```
-```{r}
-hist(d2$G3, col =2, breaks = 20)
+From above result we see the lowest error occurs for the 4th component the value of 3124. In test case we use 4 components as found here. 
+```{r ch6_testplsmethdi}
+
+pls.pred = predict(pls.fit, x[test,], ncomp = 4)
+
+mean((pls.pred - y.test)^2)
+
+pls.fit =  plsr(price~peakrpm+citympg+ enginesize
+                +carwidth+curbweight+carlength
+                + highwaympg+  horsepower+enginelocation,
+                data = card,  scale = TRUE, ncomp =4)
+
+summary(pls.fit)
+
 ```
-```{r}
-hrp <- read.csv("framingham.csv")
-summary(hrp)
+Using 4 components we find error of 9446577, very similar to PCR but with smaller number of components. PCR chose more components.
+
+# Chapter 7
+
+## Polynomial Regression and Step function
+
+In this section I will implement different nonlinear estimation method to experiment on car dataset. Firsly we will use poly function with lm function to implement the polynomial regression. In this experiment, I will use only one feature of enginesize for better explanation. We have seen the significance of enginesize feature in last chapter.  
+```{r ch7_cc1}
+
+library(ISLR)
+attach(card)
+
+fit = lm(price~poly(enginesize, 4), data = card)
+coef(summary(fit))
 ```
-```{r}
-hist(hrp$TenYearCHD, col =2, breaks=15)
+There are also alternative ways to implement the polynomial regression over the dataset. We can use I or use the cbind function for conci
+
+```{r ch7_afterergfit4}
+
+fit2 = lm(price~poly(enginesize, 4, raw=T), data = card)
+coef(summary(fit))
+
+fit2a = lm(price~enginesize+I(enginesize^2)+I(enginesize^3) + I(enginesize^4), data=card)
+
+coef(fit2a)
+
+fit2b =  lm(price~cbind(enginesize, enginesize^2, enginesize^3,enginesize^4), data=card)
+
+coef(fit2b)
+```
+In the previous two section, we find similar coefficients for all the poly, I and cbind function methods. This shows the equivalance of the implementaions. 
+
+Here we specify the range of enginesize for prediction. 
+
+```{r ch7_page303cbind}
+engsrange =  range(enginesize)
+
+engs.grid =  seq(from=engsrange[1], to = engsrange[2])
+
+preds= predict(fit, newdata = list(enginesize=engs.grid), se=TRUE)
+
+se.bands =  cbind(preds$fit+2*preds$se.fit, preds$fit-2*preds$se)
+```
+Now we can plot the result of previous sectoin. 
+```{r ch7_tinsotinISLR}
+#plot
+par(mfrow=c(1,2), mar = c(4.5, 4.5,1,1), oma=c(0,0,4,0))
+plot(enginesize, price, xlim= engsrange, cex=0.5, col="darkgrey")
+title("Degree 4  polynomial", outer=T)
+matlines(engs.grid, se.bands, lwd=1, col="blue", lty=3)
+```
+
+Next, we re-evaluate the equivalence between the poly() and I() method by check the prediciton differences. 
+
+```{r ch7_islrstill3003rm10}
+preds2= predict(fit2, newdata=list(enginesize=engs.grid), se=TRUE)
+max(abs(preds$fit- preds2$fit))
+```
+The prediction are almost same. 
+
+```{r ch7_303varifiedabove}
+
+fit.1 = lm(price~enginesize, data=card)
+fit.2 = lm(price~poly(enginesize,2), data=card)
+fit.3 = lm(price~poly(enginesize,3), data=card)
+fit.4 = lm(price~poly(enginesize,4), data=card)
+fit.5 = lm(price~poly(enginesize,5), data=card)
+anova(fit.1, fit.2, fit.3, fit.4, fit.5)
+```
+Here, the linear polynomial seems fit. But changing from 1 to 2 is not significant. 
+
+```{r ch7_304anovavobe}
+coef(summary(fit.5))
+```
+The result is also evident from the anova test above. We see the relation of t value and p value from the above result
+```{r randch7test}
+(-5.3535)^2
+
+```
+The same as 28.6606 of the avona result earlier. 
+
+In next section, we add another feaure carwidth for the analysis
+```{r ch7_305_aftersum}
+
+fit.1 = lm(price~carwidth+enginesize, data=card)
+fit.2 = lm(price~poly(enginesize,2)+carwidth, data=card)
+fit.3 = lm(price~poly(enginesize,3)+carwidth, data=card)
+anova(fit.1, fit.2, fit.3)
+```
+We find the model 2 to model 3 is insignificant. 
+
+In next section we create class label for the price in car dataset by selecting the modality. 
+
+```{r ch7_islr305class}
+fit = glm(I(price>10300)~poly(enginesize, 4), data=card, family = binomial)
+
+preds = predict(fit, newdata = list(enginesize=engs.grid), se=T)
 ```
 
 
+```{r ch7_islar305fitglm}
+pfit = exp(preds$fit)/(1+exp(preds$fit))
+se.bands.logit = cbind(preds$fit+2*preds$se.fit, preds$fit-2*preds$se.fit)
+se.bands = exp(se.bands.logit)/(1+exp(se.bands.logit))
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+preds = predict(fit, newdata = list(enginesize=engs.grid), type="response", se=T)
+```
+
+```{r ch7_islr307}
+
+plot(enginesize, I(price>15000), xlim=engsrange, type ="n", ylim= c(0,0.2))
+points(jitter(enginesize), I((price>15000)/5), cex=0.5, pch="|", col="darkgrey")
+lines(engs.grid, pfit, lwd=2, col="blue")
+matlines(engs.grid, se.bands, lwd = 1, col="blue", lyt=3)
+```
+
+```{r ch7_307cont__}
+
+table(cut(enginesize, 4))
+
+fit =lm(price~cut(enginesize, 4), data=card)
+coef(summary(fit))
+```
+The cut method selected the point 127, 194 and 260 enginesize. 
+
+
+## spline
+
+
+```{r ch7_spl308}
+library(splines)
+
+fit = lm(price~bs(enginesize, knots = c(90,120,180)), data=card)
+pred = predict(fit, newdata = list(enginesize=engs.grid), se=T)
+plot(enginesize, price, col="grey")
+lines(engs.grid, pred$fit, lwd=2)
+lines(engs.grid, pred$fit+2*pred$se, lty="dashed")
+lines(engs.grid, pred$fit-2*pred$se, lty="dashed")
+```
+In the implementation we specified 90, 120 and 180 as knots to create spline of 6 basis functions. 
+
+
+```{r ch7_splnes307bk}
+dim(bs(enginesize, knots=c(90,120,180)))
+dim(bs(enginesize, df=6))
+attr(bs(enginesize, df=6), "knots")
+```
+We see that the r select knots in 97, 120 and 141, near the points we selected in earlier methods. 
+
+
+```{r ch7_islr307foxit}
+fit2 = lm(price~ns(enginesize, df=4), data=card)
+
+pred2= predict(fit2, newdata = list(enginesize=engs.grid), se=T)
+plot(enginesize, price, col="grey")
+lines(engs.grid, pred2$fit, col="red", lwd=2)
+```
+
+We fit the previous model using 4 degree of freeedom. 
+
+In next experiment we use the smooth spline method. 
+
+```{r hch7_307errfix}
+plot(enginesize, price, xlim= engsrange, cex=0.5, col="darkgrey")
+title("smoothing Spline")
+fit = smooth.spline(enginesize, price, df=16)
+fit2 = smooth.spline(enginesize, price, cv=TRUE)
+fit2$df
+lines(fit,col="red", lwd=2)
+lines(fit2,col="blue", lwd=2)
+legend("topright", legend = c("16 DF", "6.95 DF"), col=c("red", "blue"), lty=1, lwd=2, cex=0.8)
+```
+We see the comparison between 16 and 6.5 degree of freeedom. 16 DF model fit the data with high accuracy by taking more wibble form. 
+
+
+```{r ch7_308islrnicbo}
+
+plot(enginesize, price, xlim = engsrange, cex=.5, col="darkgrey")
+title("local regerssion")
+fit = loess(price~enginesize, span=.2, data=card)
+fit2 = loess(price~enginesize, span=.5, data=card)
+lines(engs.grid, predict(fit, data.frame(enginesize=engs.grid)), col="red", lwd=2)
+lines(engs.grid, predict(fit2, data.frame(enginesize=engs.grid)), col="blue", lwd=2)
+legend("topright", legend = c("Span 0.2", "Spna 0.5"), col=c("red", "blue"), lty=1, lwd=2, cex=0.8)
+```
+We can also select the span parameters to control the model fitness over the training instances
+
+
+## General additive model (GAM)
+
+Using general additive model we cab combine different methods together. 
+
+```{r ch7_308gamshtreat}
+gam1 = lm(price~ns(enginesize, 4)+ns(carwidth,3), data=card)
+library(gam)  
+gam.m3 =gam(price~s(enginesize,4)+s(carwidth,3), data=card)
+par(mfrow = c(1,2))
+plot(gam.m3, se=TRUE, col='blue')
+```
+
+```{r ch7_islr307gam}
+par(mfrow = c(1,2))
+plot.Gam(gam1, se=TRUE, col='red')
+```
+The previous two section we implement spline and smooth spline as additive model. We find the fitness and difference in the plot in the boundary regions.
+
+
+```{r ch7_is309lrgma}
+gam.m1= gam(price~s(enginesize,4), data=card)
+gam.m2= gam(price~s(enginesize,4)+carwidth, data=card)
+anova(gam.m1, gam.m2, gam.m3, test="F")
+```
+In previous section we define three models (1. Linear and smooth spline 2. add features, linear and smooth spline 3. Smooth spline for two features and linear for the other) and compare the significance of going from one model to another. 
+
+
+The model summary of model are are given below
+```{r ch7_sumplot309}
+summary(gam.m3)
+```
+We find the significance of the polynomial features and spline models. 
+
+We use the predict and gam library to plot the prediction of the models in the next section with different additive models.
+
+```{r ch7_gamislra309}
+preds =predict(gam.m2, newdata=card)
+
+par(mfrow = c(1,3))
+gam.lo= gam(price~s(enginesize, df=4)+lo(carwidth, span = 0.7)
+            +curbweight, data=card)
+plot.Gam(gam.lo, se=TRUE, col="green")
+
+gam.lo.i= gam(price~lo(enginesize+carwidth, span = 0.7)
+              +curbweight, data=card)
+```
+
+We can use akima two see the two dimension of plot for two variable for the car price dataset against the carwith and enginesize variable. 
+
+```{r ch7_islr310afpred}
+library(akima)
+par(mfrow = c(1,2))
+plot(gam.lo.i)
+
+gam.lr = gam(I(price>10400)~carwidth+s(enginesize, df=5)
+             +curbweight, family = binomial, data=card)
+
+par(mfrow = c(1,3))
+
+plot(gam.lr, se=T, col="green")
+
+table(curbweight, I(price>15000))
+
+gam.lr.s = gam(I(price>15000)~carwidth+s(enginesize, df=5)
+               +curbweight, family = binomial, data=card)
+plot(gam.lr.s, se =T, col ="green")
+
+```
+
+
+# Chapter 8
+
+In this section, I will implement different tree based methods on the car dataset. 
+
+## Classification Tree
+
+I create class label for the car price by selecting the median as threshold value. I use the tree library to implement the classification tree. 
+
+```{r chap8_cc1}
+
+
+library(tree)
+high = ifelse(price<=10300, "No", "Yes")
+
+card = data.frame(card, high)
+
+attach(card)
+
+tree.card =  tree(high~fuelsystem+peakrpm+citympg
+                  + enginesize+enginetype+carwidth+curbweight+carlength
+                  + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                  + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                  data = card)
+
+
+summary(tree.card)
+```
+From the summary, we see the performance of the tree, it misclassified 8 instances in the training examples. 
+
+We observe the graphical representation of the tree in the following section. 
+```{r ch8_whaelsaftrsum}
+plot(tree.card)
+text(tree.card, pretty= 0)
+```
+We see the classified tree via the classifier method. It selected curbweight as 1st label feaures. We can also get the description by following code
+```{r ch8_treplotabodfovrgotepage}
+tree.card
+
+```
+The above result shows the rule of tree classifier for classifying car price as high or low. 
+
+Now I use the validaton set to test the model performance. The model is trained only on the training instances. 
+
+```{r ch8_page325_winfox}
+
+set.seed(2)
+
+train =  sample(1:nrow(card), 150)
+card.test  =  card[-train,]
+high.test =  high[-train]
+tree.card = tree(high~fuelsystem+peakrpm+citympg
+                 + enginesize+enginetype+carwidth+curbweight+carlength
+                 + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                 + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                 data = card, subset=train)
+
+tree.pred = predict(tree.card, card.test, type = "class")
+
+table(tree.pred, high.test)
+```
+From the table above we find that the classifier was able to correctly classify 50 instances out of 54 test instances. It was trained on 150 training examples. 
+
+```{r ch8_longcov325guess}
+
+set.seed(3)
+
+cv.card = cv.tree(tree.card, FUN=prune.misclass)
+names(cv.card)
+cv.card
+```
+The dev corresponds to misclassification. For 2 the misclassification rate is minimum for the tree method. 
+
+```{r ch8_aftcvrtre}
+par(mfrow= c(1,2))
+plot(cv.card$size, cv.card$dev, type="b")
+plot(cv.card$k, cv.card$dev, type="b")
+```
+The result shows that with tree size the misclassification decreases.
+
+We now create a 4 node tree using prune missclassification. 
+
+```{r ch8_prjnenree}
+prune.card = prune.misclass(tree.card, best=4)
+plot(prune.card)
+text(prune.card, pretty = 0)
+tree.pred = predict(prune.card, card.test, type = "class")
+table(tree.pred, high.test)
+```
+The previous result shows 6 misclassification result on the validation set. The accuracy is 89%.
+```{r ch8acdiaodfn}
+(24+25)/(26+29)
+```
+Now we fit the tree model for different tree size and check model performance. I use more tree label than earlier example. 
+```{r ch8_besgndkjfre}
+prune.card = prune.misclass(tree.card, best=6)
+plot(prune.card)
+text(prune.card, pretty = 0)
+tree.pred = predict(prune.card, card.test, type = "class")
+table(tree.pred, high.test)
+```
+We see than the error has decrease in the result as we have used bigger tree.
+
+## Fitting regression trees
+
+Similar to classifier, we first fit the model, 
+
+```{r ch8_firgesta}
+set.seed(1)
+
+train = sample(1:nrow(card), nrow(card)/2)
+tree.card = tree(price~fuelsystem+peakrpm+citympg
+                 + enginesize+enginetype+carwidth+curbweight+carlength
+                 + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                 + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                 data = card, subset=train)
+
+summary(tree.card)
+```
+In summary the model finds four veriables to decide the car price. It created 6 nodes tree. The graphical structure is as follow;
+
+```{r ch8_islar342_1n}
+plot(tree.card)
+text(tree.card, pretty = 0)
+```
+In above figure, we see the 6 node tree found by the model.
+
+We apply pruning to check model performance across the tree size. 
+
+```{r ch8_islar342_3ndjf}
+cv.card = cv.tree(tree.card)
+plot(cv.card$size, cv.card$dev, type ="b")
+```
+The above graph shows tree size vs error graph for the car price using regression tree. 
+
+```{r ch8_is342_2nlr}
+prune.card = prune.tree(tree.card, best=5)
+plot(prune.card)
+text(prune.card, pretty = 0)
+```
+We controlled the tree size by specifing 5. The plot shows the estimated 5 node tree for the car price dataset. 
+
+```{r ch8_342Islreval}
+yhat = predict(tree.card, newdata= card[-train,])
+card.test = card[-train, "price"]
+plot(yhat, card.test)
+abline(0,1)
+mean((yhat-card.test)^2)
+```
+In last example, we see the tree performance using the cross-validation approach. We find the final error on test set is 8637294. 
+
+In next we will see the bagging and random forest and compare the error result. 
+
+## Bagging and Random forest
+
+In this part we will apply bagging and random forest by randomforest function.
+
+### Bagging
+
+
+The bagging is special case of random forest with considering all the features at a time. 
+
+
+
+```{r ch8_islra342_5yes}
+library(randomForest)
+
+set.seed(1)
+bag.card = randomForest(price~fuelsystem+peakrpm+citympg
+                        + enginesize+enginetype+carwidth+curbweight+carlength
+                        + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                        + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                        data = card, subset=train, mtry =18, importance =TRUE)
+bag.card
+
+```
+We specified mtry = 18, as we have 18 features for the car price dataset. The random forest follows bagging approach for estimation. 
+
+```{r ch8_bag342}
+
+yhat.bag = predict(bag.card, newdata = card[-train,])
+plot(yhat.bag, card.test)
+abline(0,1)
+mean((yhat.bag - card.test)^2)
+```
+In the cross-validation approach we observe the error of 5694545. This is smaller than tree regression method since bagging combines result different regressor. 
+
+We can also control the number of tree  in bagging and and check its performance on the test result. 
+
+```{r ch8_343isfndlne}
+set.seed(1)
+bag.card = randomForest(price~fuelsystem+peakrpm+citympg
+                        + enginesize+enginetype+carwidth+curbweight+carlength
+                        + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                        + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                        data = card, subset=train, mtry =18, ntree = 25)
+bag.card
+```
+We evaluate the bagging model on the validation dataset. 
+
+
+```{r ch8_343_25}
+yhat.bag = predict(bag.card, newdata = card[-train,])
+plot(yhat.bag, card.test)
+abline(0,1)
+mean((yhat.bag - card.test)^2)
+```
+We find the final error is 6000532, similar to earlier bagging method but smaller than decision tree regression method. 
+
+### Random forest
+
+By controlling mtry parameters we implement random forest over the car dataset. I used 18/3 = 6 features for the car data.
+
+```{r ch8_343_rfbegi}
+set.seed(1)
+rf.card = randomForest(price~fuelsystem+peakrpm+citympg
+                         + enginesize+enginetype+carwidth+curbweight+carlength
+                         + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                         + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                         data = card, subset=train, mtry = 6, importance=TRUE)
+yhat.rf = predict(rf.card, newdata = card[-train, ])
+mean((yhat.rf - card.test)^2)
+```
+
+Using random forest we find the error of 5559902 comparable to the bagging method by using 6 features at maximum each time. The random forest also better estimates than the decision tree method. 
+
+We can also observe the variable importance in the random forest in r. 
+```{r ch8_342_1i}
+importance(rf.card)
+```
+From the importance we see that, enginesize is the most important feature for the random forest. Since enginesize gets maximum value in the random forest approach. 
+
+We can also plot their respective importance. 
+```{r ch8_344Irfend}
+varImpPlot(rf.card)
+```
+We can see the previous result in the plot in this section. The enginesize gets chosen as the best important feature.
+
+
+## boosting
+
+We will use gbm package for applying boosting over the car price dataset. In the r we can selection the interaction option in boosting method. In my experiment, I have chosen 6. 
+
+```{r ch8_344_251_silar}
+library(gbm)
+set.seed(1)
+boost.card = gbm(price~fuelsystem+peakrpm+citympg
+                 + enginesize+enginetype+carwidth+curbweight+carlength
+                 + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                 + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                 data = card[-train,], distribution = "gaussian", n.trees = 5000, 
+                 interaction.depth = 6)
+summary(boost.card)
+```
+We again see that the most important feature in boosting is enginesize as it gets most rel.inf parameter of 26.5447
+
+```{r ch8_345Islrnfajkfhi}
+par(mfrow = c(1,2))
+plot(boost.card, i ="enginesize")
+plot(boost.card, i= "curbweight")
+```
+In above plots we see the car price estimation based on the enginesize and curbweight predictors. 
+
+```{r ch8_342_25alisnl}
+yhat.boost =  predict(boost.card, newdata = card[-train,], n.trees = 5000)
+mean((yhat.boost - card.test)^2)
+```
+We estimate the cross validation error for boosting method and found the value of 215913, smaller than both the random forest and decision trees. The tree performed better in the car price than the linear methods. 
+
+Finally we experiment with the shrinkage parameter lambda. 
+
+```{r ch8_345ENdch}
+boost.card = gbm(price~fuelsystem+peakrpm+citympg
+                 + enginesize+enginetype+carwidth+curbweight+carlength
+                 + highwaympg+ boreratio+ stroke + wheelbase + drivewheel
+                 + enginelocation+ aspiration+ doornumber+ horsepower+ compressionratio,
+                 data = card[-train,], distribution = "gaussian", n.trees = 5000, 
+                 interaction.depth = 4, shrinkage = 0.2, verbose = F)
+yhat.boost =  predict(boost.card, newdata = card[-train,], n.trees = 5000)
+mean((yhat.boost - card.test)^2)
+
+```
+By tuning lambda, we get a little better result (209460) in the cross validation data compared to earlier boosting cross-validation result (215913.8).
+
+
+# Chapter 9
+
+To apply the support vector classifier and sVM we will use e1071 library in R. 
+
+## Support Vector Classifier
+
+First I format the car dataset for training the support vector classifier. I have used engineize and curbweight. We also created class label for the target using the median value for the car price. 
+
+```{r ch9_cc1}
+
+set.seed(1)
+
+high = ifelse(price<=10400, 0, 1)
+y = high
+cutlen = 180 # upto 205
+
+
+x =  matrix( c(curbweight[1:cutlen], enginesize[1:cutlen]),ncol = 2, nrow  = cutlen) #very important
+
+y = high[1:cutlen]
+
+cardshort = data.frame(x = x, y = as.factor(y))
+attach(cardshort)
+
+plot(x, col = (3-y))
+```
+We see the distribution of the car price for the two variables. The car price red denotes high price.
+
+I use the svm function from the library to implement car price classifier based on the two features I selected earlier.
+
+```{r ch9_373}
+
+
+library(e1071)
+svmfit = svm(y~., data = cardshort, kernel = "linear", cost = 20, scale = FALSE)
+
+```
+
+As we have already trained the SVM classifier we can plot the classifier by as follow
+
+
+```{r ch9_374islr_1245}
+
+plot(svmfit, cardshort)
+```
+We see that, the two region seperated the car prices. The red region return 1 and the greyish area return 0 in the feature space. 
+
+```{r ch9_374_2fahcnei}
+
+svmfit$index
+
+summary(svmfit)
+```
+Here we see that linear kernel was used with cost 20. 
+
+We can change the cost parameters to smaller value and conduct experiment on the car price dataset. 
+
+```{r ch9_c374ossmallt}
+
+svmfit = svm(y~., data = cardshort, kernel = "linear", cost = 0.01, scale = FALSE)
+plot(svmfit, cardshort)
+
+svmfit$index
+```
+With the cost we can control the number of support vector. With smaller cost parameter we find higher number of support vectors. 
+
+Now we sweep the value of cost in implement svm for different cost values
+```{r ch9I_374lsr}
+set.seed(1)
+
+
+tune.out = tune(svm,y~.,
+                data = cardshort, ranges = list(cost =c(0.001, 0.01, 0.1, 1 ,5 ,10, 100)) )
+```
+
+We can observe the summary of the model as follows. 
+```{r ch9_afterwdhnwe375}
+
+summary(tune.out)
+```
+From summary value we can see the best cost for linear kernel is 0.0833.
+
+We can also see the summary of the best model using R for the car data for the linear kernel. 
+
+```{r ch9_i3s7l5r}
+bestmod = tune.out$best.model
+summary(bestmod)
+```
+In previous section, we see the summary for the best model. It has 39 support vectors. 
+
+We can also predict the model performance on the test data. 
+
+```{r ch9_inaf3df75fa}
+xtest =  matrix(c(curbweight[(cutlen+1):205], enginesize[(cutlen+1):205] ), 
+                ncol = 2, nrow  =205- cutlen)
+ytest = high[(cutlen+1):205]
+
+cardshorttest = data.frame(x = xtest, y = as.factor(ytest))
+
+ypred = predict(bestmod, cardshorttest)
+
+table(predict = ypred, truth = cardshorttest$y)
+```
+From previous result, we see that the model performance on the validation set. The model correctly classified 24 instances and failed in estimating 1 instance. 
+
+
+```{r ch9_pred376}
+svmfit = svm(y~., data = cardshort, kernel = "linear", cost = 1, scale = FALSE)
+ypred = predict(svmfit, cardshorttest)
+
+table(predict = ypred, truth = cardshorttest$y)
+```
+
+In the car data the cost from 0.1 to 1 didn't impact the test performances. 
+
+Now we change the cost to a high values. 
+
+```{r ch9_376valie}
+
+svmfit = svm(y~., data = cardshort, kernel = "linear", cost = 1e05, scale = FALSE)
+summary(svmfit)
+
+```
+Now we see teh support vectors number is 19, smaller than earlier cost = .1 (39). 
+
+```{r ch9_376isl_2}
+plot(svmfit, cardshort)
+```
+We plot the model and see the boundary lines are smooth compared to the earlier small cost value. 
+
+
+## SVM
+
+In this section I experiment with the non-linear kernel for the car price dataset. We use previously defined class labels for this experiments. 
+
+```{r ch9_svmine377}
+plot(x, col =y)
+
+
+train = sample(180,100)
+
+
+svmfit = svm(y~., data = cardshort[train,], kernel = "radial", gamma = 1, cost = 1)
+plot(svmfit, cardshort[train,])
+```
+We see curved boundary for the decision classifier generated by radial basis classifiers. 
+
+
+```{r ch9_svmdte}
+summary(svmfit)
+```
+The radial kernel selected 38 support vectors to draw the bounday between the class labels. 
+
+```{r ch9_afthesum377}
+svmfit = svm(y~., data = cardshort[train,], kernel = "radial", gamma = 1, cost = 1e5)
+plot(svmfit, cardshort[train,])
+
+summary(svmfit)
+```
+We see complex boundary generated for the the decision by the svm with a high cost function with 29 support vectors. 
+
+
+```{r ch9_378iadnkhehfk}
+set.seed(1)
+tune.out = tune(svm,y~., data = cardshort[train,], kernel = "radial",
+                ranges = list(cost =c(0.1, 1, 10, 100, 1000)) )
+summary(tune.out)
+```
+We use the tune to find the best classifier by sweeping the cost value. We find that the model gets cost 0.1 as the best model. We evaluated the model on the test cases. 
+
+```{r ch9_smvdnoiu379}
+table(truc = cardshort[-train, "y"], pred = predict(tune.out$best.model, 
+                                                    newdata = cardshort[-train,]))
+
+```
+Now we see the model performed with high accuracy on large number of test case and trained upon small number of instance. The model accuracy is 
+
+```{r ch9_modahauiea}
+(41+34)/(43+37)
+```
+
+
+## ROC curve
+
+Firstly, we define a function for plotting the ROC curves
+```{r ch9_rocdfuve}
+library(ROCR)
+
+rocplot = function(pred, truth, ...){
+  predob = prediction(pred, truth)
+  perf = performance(predob, "tpr", "fpr")
+  plot(perf,...)
+}
+```
+
+Now we implement the actual svm fit using the train car data portion. 
+
+```{r ch9_ocodr}
+svmfit.opt = svm(y~., data = cardshort[train,], 
+                 kernel = "radial", gamma = 2, cost = 1, decision.values =T)
+
+
+fitted = attributes(predict(svmfit.opt, cardshort[train,], decision.value = T))$decision.values
+```
+Next, we use the fitted model to plot the ROC curve.
+
+```{r ch9_397ptojt}
+par(mfrow =c(1,2))
+
+rocplot(fitted, cardshort[train, "y"], main = "Training Data")
+```
+The previous plot shows the ROC curves. The classifier seems working great on training instances as we see the area under the ROC curve is close to 0. 
+
+
+```{r ch9_pltoun}
+par(mfrow =c(1,2))
+rocplot(fitted, cardshort[train, "y"], main = "Training Data")
+
+svmfit.flex = svm(y~., data = cardshort[train,], 
+                 kernel = "radial", gamma = 2, cost = 10000, decision.values =T)
+
+
+fitted = attributes(predict(svmfit.flex, cardshort[train,], decision.value = T))$decision.values
+
+rocplot(fitted, cardshort[train, "y"], add =T, col ="red")
+```
+We overlap the two roc curve for two different cost function. In the lower FPR the red model seems a little better and at the FPR 0.4, the black ROC curve performed better. 
+
+Now we finally plot the the test models ROC curves in the same plot for comparison. 
+
+```{r chh9_postresnf}
+
+par(mfrow =c(1,2))
+rocplot(fitted, cardshort[train, "y"], main = "Training Data")
+
+svmfit.flex = svm(y~., data = cardshort[train,], 
+                 kernel = "radial", gamma = 2, cost = 10000, decision.values =T)
+
+
+fitted = attributes(predict(svmfit.flex, cardshort[train,], decision.value = T))$decision.values
+
+rocplot(fitted, cardshort[train, "y"], add =T, col ="red")
+
+
+
+fitted = attributes(predict(svmfit.opt, cardshort[-train,], decision.value = T))$decision.values
+
+rocplot(fitted, cardshort[-train, "y"], add =T, col ="green")
+
+
+fitted = attributes(predict(svmfit.flex, cardshort[-train,], decision.value = T))$decision.values
+
+rocplot(fitted, cardshort[-train, "y"], add =T, col ="black")
+
+```
+
+From the above figure, we see that the RED and green (optimal) model perfromed better than the black curve (gamma parameter 2) in terms of area under the curves. 
+
+
+
